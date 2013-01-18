@@ -27,8 +27,6 @@ public class Launcher : MonoBehaviour
 		projectileObject.name = "projectile" + totalShotsFired.ToString();
 		projectileObject.transform.position = this.transform.position;
 		projectileObject.rigidbody.AddForce(force/Time.timeScale);
-		projectileObject.rigidbody.maxAngularVelocity = 300f;
-		projectileObject.rigidbody.AddTorque(new Vector3(0f, 0f, -300f)/Time.timeScale, ForceMode.Impulse);
 		
 		Projectile projectile = projectileObject.AddComponent<Projectile>();
 		projectile.launcher = this;
