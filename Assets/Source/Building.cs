@@ -14,36 +14,10 @@ public class Building : MonoBehaviour
 	public int columns = 4;
 	public int rows = 10;
 	public bool regenerateNow = false;
-	
-	Vector3 originalPosition;
-	
-	//float timer = 0f;
-	//float speed = 1f;
-	
+
 	
 #endregion
 #region 	UNITY_HOOKS
-	
-	
-	void Awake()
-	{
-		//timer = Random.value;
-		//speed = Random.Range(0.5f, 2f);
-		originalPosition = transform.localPosition;
-	}
-	
-	
-	void Update()
-	{
-		if( !Application.isPlaying )
-			return;
-		
-		//timer += Time.deltaTime * speed;
-		
-		/*Vector3 position = originalPosition;
-		position.y += Mathf.Sin(timer) * 15f;
-		transform.localPosition = position;*/
-	}
 	
 	
 	/// <summary>
@@ -65,13 +39,13 @@ public class Building : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Regenerate this instance.
+	/// Regenerate the building (if it's already empty).
 	/// </summary>
 
 	public void Regenerate()
 	{
 		// Don't mess up an already existing building in editor mode.
-		// Force them to manually clear it out instead, to be safe.
+		// Force them to manually clear it out instead, just to be safe.
 		if( !Application.isPlaying && transform.childCount > 0 )
 			return;
 		

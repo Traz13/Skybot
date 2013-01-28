@@ -2,66 +2,89 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Game : MonoBehaviour 
+public class Game : MonoBehaviour
 {
-	// Singleton
 	public static Game instance;
 	
 #region 	EVENTS
 	
 	
-	public delegate void DidFinishTurn(Game game);
-	public event DidFinishTurn didFinishTurn;
+	public delegate void TurnWillBegin(Game game);
+	public event TurnWillBegin turnWillBegin;
 	
+	public delegate void TurnWillEnd(Game game);
+	public event TurnWillEnd turnWillEnd;
 	
-	public delegate void DidComplete(Game game);
-	public event DidComplete didComplete;
+	public delegate void GameWillBegin(Game game);
+	public event GameWillBegin gameWillBegin;
+	
+	public delegate void GameWillEnd(Game game);
+	public event GameWillEnd gameWillEnd;
 	
 	
 #endregion
 #region 	VARIABLES
 	
 	
-	public Camera mainCamera;
+	/// <summary>
+	/// The maximum number of rounds (0 == infinite).
+	/// </summary>
+	public readonly int maxRounds = 0;
 	
+	// Current Round
+	protected int currentRound = 0;
+	
+	// Shots per Turn
+	public int shotsPerTurn = 3;
+	
+	// Current Player
+	Player mCurrentPlayer;
+	public Player currentPlayer {
+		get { return mCurrentPlayer; }
+	}
+	
+	// Maximum Velocities
+	public float maxFireVelocity = 35f;
+	public float maxMoveVelocity = 15f;
+	
+	// Players
 	[HideInInspector]
 	public Player[] players;
 	
-	public GameRules rules = new DeathmatchRules();
+	// Logs/Counters
+	int shotsFired = 0;
+	int shotsCompleted = 0;
 	
-	public int shotsPerTurn = 3;
-	int turnsTaken = 0;
-	
-	Dictionary<string,Projectile> projectilesFired = new Dictionary<string,Projectile>();
-	
+	bool playing = false;
 	
 #endregion
-#region 	UNITY_HOOKS
+#region UNITY_HOOKS
 	
 	
 	/// <summary>
 	/// Awake this instance.
 	/// </summary>
 	
-	void Awake()
+	protected virtual void Awake()
 	{
 		if( instance != null )
 			throw new System.Exception("Only one instance of Game allowed!");
-		
-		Physics.gravity = new Vector3(0f, -20f, 0f);
 		
 		instance = this;
 		
 		// Gather and sort players by index.
 		Player[] playerComps = GetComponentsInChildren<Player>(false);
-		players = new Player[playerComps.Length];
+		if( playerComps.Length == 0 )
+			throw new System.Exception("Must have at least one Player!");
 		
+		players = new Player[playerComps.Length];
 		foreach( Player player in playerComps )
 		{
 			players[player.playerIndex] = player;
-			player.GetComponent<Launcher>().didFireProjectile += projectileFired;
-			player.didDie += playerDidDie;
+			player.GetComponent<Launcher>().didFireProjectile += shotFired;
 		}
+		
+		mCurrentPlayer = players[0];
 	}
 	
 	
@@ -69,67 +92,35 @@ public class Game : MonoBehaviour
 	/// Start this instance.
 	/// </summary>
 	
-	void Start()
+	protected virtual void Start()
 	{
+		// Just automatically begin the game for now.
 		BeginGame();
 	}
 	
 	
-	/// <summary>
-	/// Update this instance.
-	/// </summary>
-	
-	public bool slowMo = false;
-	public float slowMoTimer = 0f;
-	public readonly float slowMoTimerMax = 0.2f;
-	float slowMoAmount = 0f;
-	
-	void Update()
-	{
-		//if( Input.GetKeyDown(KeyCode.Space) )
-		//	slowMo = true;
-		
-		if( slowMo )
-		{
-			slowMoTimer += Time.deltaTime;
-			
-			if( slowMoTimer < 0.5f )
-			{
-				Time.fixedDeltaTime = 0.003f;//Time.fixedDeltaTime/10f;//Mathf.Lerp(0.02f, 0.002f, slowMoAmount / 0.5f);
-				Time.timeScale = 0.15f;//Time.timeScale/10f;//Mathf.Lerp(1f, 0.1f, slowMoAmount / 0.5f);
-				//slowMoAmount += Time.deltaTime;
-			}
-			else if( slowMoTimer > slowMoTimerMax )
-			{
-				Time.fixedDeltaTime = 0.02f;//Time.fixedDeltaTime*10f;//Mathf.Lerp(0.002f, 0.02f, slowMoAmount / 0.5f);
-				Time.timeScale = 1f;//Time.timeScale*10f;//Mathf.Lerp(0.1f, 1f, slowMoAmount / 3f);
-				//slowMoAmount -= Time.deltaTime;
-				slowMo = false;
-				slowMoTimer = 0f;
-			}
-			
-			/*if( slowMoAmount <= 0f )
-			{
-				slowMo = false;
-				slowMoAmount = 0f;
-			}*/
-		}
-	}
-	
-	
 #endregion
-#region METHODS
-	
+#region 	GAME_RULES
+
 	
 	/// <summary>
-	/// Begins the game.
+	/// Initialize game data and begin the first turn.
 	/// </summary>
 	
-	public void BeginGame()
+	public virtual void BeginGame()		
 	{
-		// TODO: Show exciting intro graphics.
+		if( playing )
+		{
+			Debug.LogWarning("Calling BeginGame() when it's already started!");
+			return;
+		}
+		
+		if( gameWillBegin != null )
+			gameWillBegin(this);
 		
 		BeginTurn();
+		
+		playing = true;
 	}
 	
 	
@@ -137,9 +128,18 @@ public class Game : MonoBehaviour
 	/// Ends the game.
 	/// </summary>
 	
-	public void EndGame()
+	protected virtual void EndGame() 		
 	{
-		// TODO: Show winner and game stats, with the option to replay.
+		if( !IsGameOver() )
+		{
+			Debug.LogWarning("Trying to end game prematurely!");
+			return;
+		}
+		
+		if( gameWillEnd != null )
+			gameWillEnd(this);
+		
+		playing = false;
 	}
 	
 	
@@ -147,27 +147,54 @@ public class Game : MonoBehaviour
 	/// Begins the turn.
 	/// </summary>
 	
-	public void BeginTurn()
-	{
-		GetCurrentPlayer().GetComponent<Launcher>().shotsRemaining = shotsPerTurn;
+	protected virtual void BeginTurn()		
+	{		
+		if( turnWillBegin != null )
+			turnWillBegin(this);
+		
+		// Refill their shots.
+		currentPlayer.GetComponent<Launcher>().shotsRemaining = shotsPerTurn;
+		
+		// Disable the current player's slowmo zone, and enable the opponents'.
+		currentPlayer.GetComponentInChildren<SlowMoZone>().gameObject.SetActive(false);
+		foreach( Player player in players )
+		{
+			if( player != currentPlayer )
+				player.GetComponentInChildren<SlowMoZone>().gameObject.SetActive(true);
+		}
+		
+		// Pan/zoom the camera to the current player.
 		FocusOnCurrentPlayer();
 	}
 	
 	
 	/// <summary>
-	/// Ends the turn.
+	/// Ends the turn and starts the next one.
 	/// </summary>
 	
-	public void EndTurn()
+	protected virtual void EndTurn()
 	{
-		turnsTaken++;
-		if( rules != null )
+		if( !IsTurnOver() )
 		{
-			if( rules.IsGameOver() )
-			{
-				EndGame();
-				return;
-			}
+			Debug.LogWarning("Trying to end turn prematurely!");
+			return;
+		}
+		
+		if( turnWillEnd != null )
+			turnWillEnd(this);
+		
+		// Advance to the next player, as well as the round if we're on the last player.
+		int nextPlayerIndex = currentPlayer.playerIndex + 1;
+		if( nextPlayerIndex >= players.Length )
+		{
+			currentRound++;
+			nextPlayerIndex = 0;
+		}
+		
+		if( IsGameOver() )
+		{
+			EndGame();
+			return;
 		}
 		
 		BeginTurn();
@@ -175,20 +202,34 @@ public class Game : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Gets the current player.
+	/// Have the conditions been met for the end of a turn?
 	/// </summary>
 	
-	public Player GetCurrentPlayer()
+	protected virtual bool IsTurnOver()	
 	{
-		return players[turnsTaken % 4];
+		return (shotsCompleted >= shotsPerTurn);
 	}
+	
+	
+	/// <summary>
+	/// Have the conditions been met for the end of the game?
+	/// </summary>
+	
+	protected virtual bool IsGameOver()	
+	{
+		return (maxRounds > 0 && currentRound > maxRounds);
+	}
+	
+	
+#endregion
+#region 	METHODS
 	
 	
 	/// <summary>
 	/// Focuses the main camera on the current player.
 	/// </summary>
 	
-	public void FocusOnCurrentPlayer()
+	public virtual void FocusOnCurrentPlayer()
 	{
 		// Animate the camera to the player's x,y
 		/*Vector3 playerPos = GetCurrentPlayer().transform.position;
@@ -198,19 +239,16 @@ public class Game : MonoBehaviour
 	}
 	
 	
-#endregion
-#region 	CALLBACKS
-	
-	
 	/// <summary>
-	/// Callback for a newly fired projectile.
+	/// Callback for newly fired projectile. 
 	/// </summary>
 	
-	void projectileFired(Launcher launcher, Projectile projectile)
+	void shotFired(Launcher launcher, Projectile projectile)
 	{
-		// Log every projectile fired, so that we can be sure when they've all exploded.
-		projectile.didExplode += projectileExploded;
-		projectilesFired.Add(projectile.name, projectile);
+		// Log every projectile fired, so that we can be sure when they've all exploded.		
+		shotsFired++;
+		
+		projectile.didExplode += shotCompleted;
 	}
 	
 	
@@ -218,24 +256,12 @@ public class Game : MonoBehaviour
 	/// Callback for a newly exploded projectile.
 	/// </summary>
 	
-	void projectileExploded(Projectile projectile)
+	void shotCompleted(Projectile projectile)
 	{
-		// TODO: Make sure that the turn doesn't end until all projectiles have exploded.
-	}
-	
-	
-	/// <summary>
-	/// Callback for player death.
-	/// </summary>
-	
-	void playerDidDie(Player player)
-	{	
-		// Award a point to the current player.
-		GetCurrentPlayer().points++;
-		
-		
+		shotsCompleted++;
 	}
 	
 	
 #endregion
 }
+

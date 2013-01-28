@@ -3,9 +3,14 @@ using System.Collections;
 
 public class Oblongabomb : MonoBehaviour 
 {
+	public float torque = 200f;
+	
 	void Awake() 
 	{
-		rigidbody.maxAngularVelocity = 300f;
-		rigidbody.AddTorque(new Vector3(0f, 0f, -300f)/Time.timeScale, ForceMode.Impulse);
+		rigidbody.maxAngularVelocity = torque;
+		rigidbody.AddTorque(new Vector3(0f, 0f, -torque)/Time.timeScale, ForceMode.Impulse);
+		
+		//collider.material.bounceCombine = PhysicMaterialCombine.Maximum;
+		//collider.material.bounciness = 1f;
 	}
 }

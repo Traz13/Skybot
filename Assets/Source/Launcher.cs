@@ -26,7 +26,8 @@ public class Launcher : MonoBehaviour
 		GameObject projectileObject = GameObject.Instantiate(projectileOriginal) as GameObject;
 		projectileObject.name = "projectile" + totalShotsFired.ToString();
 		projectileObject.transform.position = this.transform.position;
-		projectileObject.rigidbody.AddForce(force/Time.timeScale);
+		projectileObject.rigidbody.velocity = force;// * Time.timeScale;
+		//projectileObject.rigidbody.AddForce(force/Time.timeScale);
 		
 		Projectile projectile = projectileObject.AddComponent<Projectile>();
 		projectile.launcher = this;
