@@ -1,4 +1,4 @@
-﻿//----------------------------------------------
+//----------------------------------------------
 //            NGUI: Next-Gen UI kit
 // Copyright © 2011-2012 Tasharen Entertainment
 //----------------------------------------------
@@ -20,6 +20,7 @@ public class UIAtlas : MonoBehaviour
 		public string name = "Unity Bug";
 		public Rect outer = new Rect(0f, 0f, 1f, 1f);
 		public Rect inner = new Rect(0f, 0f, 1f, 1f);
+		public bool rotated = false;
 
 		// Padding is needed for trimmed sprites and is relative to sprite width and height
 		public float paddingLeft	= 0f;
@@ -58,6 +59,9 @@ public class UIAtlas : MonoBehaviour
 	// Replacement atlas can be used to completely bypass this atlas, pulling the data from another one instead.
 	[HideInInspector][SerializeField] UIAtlas mReplacement;
 
+	// Whether the atlas is using a pre-multiplied alpha material. -1 = not checked. 0 = no. 1 = yes.
+	int mPMA = -1;
+
 	/// <summary>
 	/// Material used by the atlas.
 	/// </summary>
@@ -78,15 +82,36 @@ public class UIAtlas : MonoBehaviour
 			{
 				if (material == null)
 				{
+					mPMA = 0;
 					material = value;
 				}
 				else
 				{
 					MarkAsDirty();
+					mPMA = -1;
 					material = value;
 					MarkAsDirty();
 				}
 			}
+		}
+	}
+
+	/// <summary>
+	/// Whether the atlas is using a premultiplied alpha material.
+	/// </summary>
+
+	public bool premultipliedAlpha
+	{
+		get
+		{
+			if (mReplacement != null) return mReplacement.premultipliedAlpha;
+
+			if (mPMA == -1)
+			{
+				Material mat = spriteMaterial;
+				mPMA = (mat != null && mat.shader != null && mat.shader.name.Contains("Premultiplied")) ? 1 : 0;
+			}
+			return (mPMA == 1);
 		}
 	}
 

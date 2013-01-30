@@ -1,6 +1,6 @@
 //----------------------------------------------
 //            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
+// Copyright ï¿½ 2011-2012 Tasharen Entertainment
 //----------------------------------------------
 
 using UnityEngine;
@@ -600,7 +600,7 @@ public class UIDraggablePanel : IgnoreTimeScale
 			bool vertical = false;
 			bool horizontal = false;
 
-			if (showScrollBars != ShowCondition.WhenDragging || mDragID != -10)
+			if (showScrollBars != ShowCondition.WhenDragging || mDragID != -10 || mMomentum.magnitude > 0.01f)
 			{
 				vertical = shouldMoveVertically;
 				horizontal = shouldMoveHorizontally;

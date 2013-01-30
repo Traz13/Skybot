@@ -107,20 +107,22 @@ public class Game : MonoBehaviour
 	/// Initialize game data and begin the first turn.
 	/// </summary>
 	
-	public virtual void BeginGame()		
+	public virtual IEnumerator BeginGame()		
 	{
 		if( playing )
 		{
 			Debug.LogWarning("Calling BeginGame() when it's already started!");
-			return;
+			yield break;
 		}
 		
 		if( gameWillBegin != null )
 			gameWillBegin(this);
 		
-		BeginTurn();
-		
 		playing = true;
+		
+		yield return new WaitForSeconds(1f);
+		
+		BeginTurn();
 	}
 	
 	

@@ -67,7 +67,7 @@ public class Building : MonoBehaviour
 		iTween.MoveTo(gameObject, new Hashtable() {
 			{ "position", new Vector3(transform.position.x, 0f, transform.position.z) },
 			{ "easetype", "easeInOutSine" },
-			{ "time", 2f }
+			{ "time", 3f }
 		});
 	}
 	
