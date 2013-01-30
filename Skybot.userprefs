@@ -1,8 +1,14 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Source/Deathmatch.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Source/Building.cs">
     <Files>
       <File FileName="Assets/Source/Deathmatch.cs" Line="18" Column="1" />
+      <File FileName="Assets/Source/Player.cs" Line="178" Column="2" />
+      <File FileName="Assets/Source/Game.cs" Line="72" Column="3" />
+      <File FileName="Assets/Source/Oblongabomb.cs" Line="11" Column="50" />
+      <File FileName="Assets/Source/BuildingBlock.cs" Line="15" Column="3" />
+      <File FileName="Assets/Source/DragCamera.cs" Line="24" Column="45" />
+      <File FileName="Assets/Source/Building.cs" Line="32" Column="18" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -14,7 +20,7 @@
               </Node>
               <Node name="NGUI" expanded="True" />
               <Node name="Source" expanded="True">
-                <Node name="Player.cs" selected="True" />
+                <Node name="Building.cs" selected="True" />
               </Node>
             </Node>
           </Node>

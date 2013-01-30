@@ -21,6 +21,30 @@ public class Building : MonoBehaviour
 	
 	
 	/// <summary>
+	/// Start this instance.
+	/// </summary>
+	
+	void Start()
+	{
+		StartCoroutine(delayedStart());
+		
+		//Game.instance.turnWillBegin += gameTurnWillBegin;
+	}
+	
+	
+	IEnumerator delayedStart()
+	{
+		yield return new WaitForSeconds(1);
+		
+		iTween.MoveTo(gameObject, new Hashtable() {
+			{ "position", new Vector3(transform.position.x, Random.Range(-3f, 7f), transform.position.z) },
+			{ "easetype", "easeInOutSine" },
+			{ "time", 3f }
+		});
+	}
+	
+	
+	/// <summary>
 	/// Update this instance.
 	/// </summary>
 	
@@ -36,6 +60,16 @@ public class Building : MonoBehaviour
 	
 #endregion
 #region 	METHODS
+	
+	
+	void gameTurnWillBegin(Game game)
+	{
+		iTween.MoveTo(gameObject, new Hashtable() {
+			{ "position", new Vector3(transform.position.x, 0f, transform.position.z) },
+			{ "easetype", "easeInOutSine" },
+			{ "time", 2f }
+		});
+	}
 	
 	
 	/// <summary>
