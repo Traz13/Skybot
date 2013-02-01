@@ -1,6 +1,9 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Source/Building.cs">
+    <Files>
+      <File FileName="Assets/Source/Building.cs" Line="39" Column="3" />
+    </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
