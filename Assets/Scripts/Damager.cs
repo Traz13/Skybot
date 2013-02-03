@@ -5,7 +5,6 @@ using System.Collections;
 public class Damager : MonoBehaviour
 {
 	public float damage = 25f;
-	public bool scaleWithForce = false;
 	
 	Hashtable hits = new Hashtable();
 	
@@ -18,7 +17,7 @@ public class Damager : MonoBehaviour
 		if( damageable == null || hits.ContainsKey(damageable) )
 			return;
 		
-		damageable.TakeDamage(damage);
+		damageable.TakeDamage(damage, collision);
 		
 		hits.Add(damageable, damageable);
 	}

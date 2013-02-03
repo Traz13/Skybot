@@ -8,6 +8,7 @@ public class UI : MonoBehaviour
 	
 #region 	VARIABLES
 	
+	public UIMainMenu mainMenu;
 	public UIBeginGame beginGameOverlay;
 	public UIEndGame endGameOverlay;
 	

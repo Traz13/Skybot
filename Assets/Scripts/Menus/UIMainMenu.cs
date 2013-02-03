@@ -19,6 +19,8 @@ public class UIMainMenu : MonoBehaviour
 		
 		Application.LoadLevel(1);
 		
+		// Pan the camera down to the playing area.
+		
 		gameObject.SetActive(false);
 	}
 }

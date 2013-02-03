@@ -8,10 +8,15 @@ public class Damageable : MonoBehaviour
 	public event WillDie willDie;
 	
 	public float health = 100f;
+	public bool scaleDamageWithForce = false;
 	
-	public void TakeDamage(float damage)
+	public Collision lastCollision;
+	
+	public void TakeDamage(float damage, Collision collision)
 	{
 		health -= damage;
+		
+		lastCollision = collision;
 		
 		if( health <= 0f )
 		{

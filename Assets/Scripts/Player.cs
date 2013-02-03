@@ -74,7 +74,7 @@ public class Player : MonoBehaviour
 		
 		Damageable damageable = gameObject.GetComponent<Damageable>();
 		if( damageable )
-			damageable.willDie += delegate { gameObject.SetActive(false); };
+			damageable.willDie += willDie;
 	}
 	
 	
@@ -85,6 +85,13 @@ public class Player : MonoBehaviour
 	void Start()
 	{
 		Game.instance.turnWillBegin += gameTurnWillBegin;
+	}
+	
+	
+	void willDie(Damageable damageable)
+	{
+		rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezePositionZ;
+		rigidbody.AddForce(damageable.lastCollision.relativeVelocity);
 	}
 	
 	
