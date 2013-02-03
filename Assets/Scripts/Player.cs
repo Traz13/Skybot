@@ -26,22 +26,6 @@ public class Player : MonoBehaviour
 	// Score
 	public int score = 0;
 	
-	// Health
-	float mHealth = 100f;
-	public float health {
-		get { return mHealth; }
-		set {
-			mHealth = value;
-			if( mHealth <= 0f )
-			{
-				if( didDie != null )
-					didDie(this);
-				
-				gameObject.SetActive(false);
-			}
-		}
-	}
-	
 	// Whether it's my turn or not.
 	public bool isMyTurn {
 		get { return (this == Game.instance.currentPlayer); }
@@ -78,13 +62,29 @@ public class Player : MonoBehaviour
 	
 	void Awake()
 	{
+		// Line Renderer
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
 		lineRenderer.SetVertexCount(trajectorySamples);
 		lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 		lineRenderer.SetColors(Color.red, new Color(1f, 0f, 0f, 0.0f));
 		lineRenderer.SetWidth(0.2f, 0.2f);
 		
+		// Grab our launcher instance (if we have one).
 		launcher = gameObject.GetComponent<Launcher>();
+		
+		Damageable damageable = gameObject.GetComponent<Damageable>();
+		if( damageable )
+			damageable.willDie += delegate { gameObject.SetActive(false); };
+	}
+	
+	
+	/// <summary>
+	/// Start this instance.
+	/// </summary>
+	
+	void Start()
+	{
+		Game.instance.turnWillBegin += gameTurnWillBegin;
 	}
 	
 	
@@ -173,8 +173,25 @@ public class Player : MonoBehaviour
 	}
 	
 	
+	void OnCollisionEnter(Collision collision)
+	{
+		// TODO : Take damage on collision with a projectile.
+	}
+	
+	
 #endregion
 #region 	METHODS
+	
+	
+	/// <summary>
+	/// Games the turn will begin.
+	/// </summary>
+	
+	void gameTurnWillBegin(Game game)
+	{
+		// Keep players from intersecting buildings during their shift.
+		rigidbody.WakeUp();
+	}
 	
 	
 	/// <summary>

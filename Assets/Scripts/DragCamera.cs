@@ -14,7 +14,7 @@ public class DragCamera : MonoBehaviour
 	
 	void Update()
 	{
-		if( Game.instance.currentPlayer && Game.instance.currentPlayer.aiming )
+		if( Game.instance == null || Game.instance.currentPlayer == null || Game.instance.currentPlayer.aiming )
 			return;
 		
 		if( Input.GetMouseButton(0) )

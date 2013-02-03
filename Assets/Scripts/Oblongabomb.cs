@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class Oblongabomb : MonoBehaviour 
+public class Oblongabomb : Projectile 
 {
 	public float torque = 200f;
 	

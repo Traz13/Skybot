@@ -8,6 +8,7 @@ public class Projectile : MonoBehaviour
 	
 	static int numCreated = 0;
 	
+	[HideInInspector]
 	public Launcher launcher;
 	
 	

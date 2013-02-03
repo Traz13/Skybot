@@ -25,11 +25,8 @@ public class Game : MonoBehaviour
 #endregion
 #region 	VARIABLES
 	
-	
-	/// <summary>
-	/// The maximum number of rounds (0 == infinite).
-	/// </summary>
-	public readonly int maxRounds = 0;
+	// Maximum Rounds
+	public readonly int maxRounds = 0;	// (0 == infinite)
 	
 	// Current Round
 	protected int currentRound = 0;
@@ -55,8 +52,6 @@ public class Game : MonoBehaviour
 	int shotsFired = 0;
 	int shotsCompleted = 0;
 	
-	bool playing = false;
-	
 #endregion
 #region UNITY_HOOKS
 	
@@ -81,10 +76,29 @@ public class Game : MonoBehaviour
 		foreach( Player player in playerComps )
 		{
 			players[player.playerIndex] = player;
-			player.GetComponent<Launcher>().didFireProjectile += shotFired;
+			Launcher launcher = player.GetComponent<Launcher>();
+			if( launcher == null )
+				Debug.Log(player.name + " doesn't have a Launcher component!");
+			else
+				launcher.didFireProjectile += shotFired;
 		}
 		
 		mCurrentPlayer = players[0];
+		
+		// Setup UI callbacks.
+		UI.instance.beginGameOverlay.didShow += delegate(UIMenu menu)
+		{
+			StartCoroutine(beginGameOverlayDidShow(menu));
+		};
+	}
+	
+
+	IEnumerator beginGameOverlayDidShow(UIMenu menu)
+	{
+		// Let the menu stay onscreen for a moment, then hide it.
+		yield return new WaitForSeconds(2f);
+		
+		menu.Hide();
 	}
 	
 	
@@ -95,12 +109,12 @@ public class Game : MonoBehaviour
 	protected virtual void Start()
 	{
 		// Just automatically begin the game for now.
-		BeginGame();
+		StartCoroutine(BeginGame());
 	}
 	
 	
 #endregion
-#region 	GAME_RULES
+#region 	METHODS
 
 	
 	/// <summary>
@@ -108,45 +122,37 @@ public class Game : MonoBehaviour
 	/// </summary>
 	
 	public virtual IEnumerator BeginGame()		
-	{
-		if( playing )
-		{
-			Debug.LogWarning("Calling BeginGame() when it's already started!");
-			yield break;
-		}
-		
+	{		
 		if( gameWillBegin != null )
 			gameWillBegin(this);
 		
-		playing = true;
+		// Load the level.
+		//Application.LoadLevel("")
 		
 		yield return new WaitForSeconds(1f);
+		
+		// Show beginning of game UI overlay.
+		UI.instance.beginGameOverlay.Show();		
+		
+		yield return new WaitForSeconds(0.2f);
 		
 		BeginTurn();
 	}
 	
 	
 	/// <summary>
-	/// Ends the game.
+	/// End the game.
 	/// </summary>
 	
 	protected virtual void EndGame() 		
-	{
-		if( !IsGameOver() )
-		{
-			Debug.LogWarning("Trying to end game prematurely!");
-			return;
-		}
-		
+	{		
 		if( gameWillEnd != null )
 			gameWillEnd(this);
-		
-		playing = false;
 	}
 	
 	
 	/// <summary>
-	/// Begins the turn.
+	/// Begin the next turn.
 	/// </summary>
 	
 	protected virtual void BeginTurn()		
@@ -164,14 +170,11 @@ public class Game : MonoBehaviour
 			if( player != currentPlayer )
 				player.GetComponentInChildren<SlowMoZone>().gameObject.SetActive(true);
 		}
-		
-		// Pan/zoom the camera to the current player.
-		FocusOnCurrentPlayer();
 	}
 	
 	
 	/// <summary>
-	/// Ends the turn and starts the next one.
+	/// End the turn and start the next one.
 	/// </summary>
 	
 	protected virtual void EndTurn()
@@ -193,6 +196,8 @@ public class Game : MonoBehaviour
 			nextPlayerIndex = 0;
 		}
 		
+		// Check if the GameOver conditions have been met, and
+		// end the game automatically if they have.
 		if( IsGameOver() )
 		{
 			EndGame();
@@ -209,7 +214,7 @@ public class Game : MonoBehaviour
 	
 	protected virtual bool IsTurnOver()	
 	{
-		return (shotsCompleted >= shotsPerTurn);
+		return true;//(shotsCompleted >= shotsPerTurn);
 	}
 	
 	
@@ -223,8 +228,29 @@ public class Game : MonoBehaviour
 	}
 	
 	
-#endregion
-#region 	METHODS
+	/// <summary>
+	/// Gets the winners (players with highest score, by default).
+	/// </summary>
+	
+	public virtual Hashtable GetWinners()
+	{
+		Hashtable winners = new Hashtable();
+		
+		int highscore = 0;
+		foreach( Player player in players )
+		{
+			if( player.score > highscore )
+			{
+				winners.Clear();
+				winners.Add(player.name, player);
+				highscore = player.score;
+			}
+			else if( player.score == highscore )
+				winners.Add(player.name, player);
+		}
+		
+		return winners;
+	}
 	
 	
 	/// <summary>
@@ -238,6 +264,26 @@ public class Game : MonoBehaviour
 		Vector3 camPos = mainCamera.transform.position;
 		SpringPosition.Begin(mainCamera.gameObject, new Vector3(playerPos.x, camPos.y, camPos.z), 3f).worldSpace = true;
 		TweenFOV.Begin(mainCamera.gameObject, 1.5f, 40f);*/
+	}
+	
+	
+	void playerWillDie(Damageable damageable)
+	{
+		Player livingPlayer = null;
+		foreach( Player player in players )
+		{
+			Damageable dmgable = player.GetComponent<Damageable>();
+			if( dmgable == null || dmgable.health > 0f )
+			{
+				// If we have more than one living player, don't do anything.
+				if( livingPlayer != null )
+					return;
+				
+				livingPlayer = player;
+			}
+		}
+		
+		EndGame();
 	}
 	
 	

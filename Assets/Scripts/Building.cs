@@ -10,7 +10,8 @@ public class Building : MonoBehaviour
 	public GameObject fullBlockPrefab;
 	
 	public Vector3 blockScale = new Vector3(2f, 2f, 2f);
-	public Vector3 padding = new Vector2(0f, 0f);
+	public float shiftMin = -3f;
+	public float shiftMax = 7f;
 	public int columns = 4;
 	public int rows = 10;
 	public bool regenerateNow = false;
@@ -25,17 +26,8 @@ public class Building : MonoBehaviour
 	/// </summary>
 	
 	void Start()
-	{
-		if( Application.isPlaying )
-		{
-			iTween.MoveTo(gameObject, new Hashtable() {
-				{ "position", new Vector3(transform.position.x, Random.Range(-3f, 7f), transform.position.z) },
-				{ "easetype", "easeInOutSine" },
-				{ "time", 3f }
-			});
-		}
-		
-		//Game.instance.turnWillBegin += gameTurnWillBegin;
+	{		
+		Game.instance.turnWillBegin += gameTurnWillBegin;
 	}
 	
 	
@@ -60,7 +52,7 @@ public class Building : MonoBehaviour
 	void gameTurnWillBegin(Game game)
 	{
 		iTween.MoveTo(gameObject, new Hashtable() {
-			{ "position", new Vector3(transform.position.x, 0f, transform.position.z) },
+			{ "position", new Vector3(transform.position.x, Random.Range(shiftMin, shiftMax), transform.position.z) },
 			{ "easetype", "easeInOutSine" },
 			{ "time", 3f }
 		});
@@ -91,12 +83,7 @@ public class Building : MonoBehaviour
 				newBlock.name = "block" + j.ToString();
 				newBlock.transform.parent = floor.transform;
 				newBlock.transform.localScale = blockScale;
-				
-				Vector3 position = new Vector3(j*blockScale.x, i*blockScale.y , 0f);
-				position.x += j*padding.x*blockScale.x;
-				position.y += i*padding.y*blockScale.y;
-				
-				newBlock.transform.localPosition = position;
+				newBlock.transform.localPosition = new Vector3(j*blockScale.x, i*blockScale.y , 0f);;
 			}
 		}
 	}
