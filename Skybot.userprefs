@@ -7,9 +7,8 @@
           <Node name="Assembly-CSharp" expanded="True">
             <Node name="Assets" expanded="True">
               <Node name="Scripts" expanded="True">
-                <Node name="Menus" expanded="True">
-                  <Node name="UIMainMenu.cs" selected="True" />
-                </Node>
+                <Node name="Menus" expanded="True" />
+                <Node name="SlowMoZone.cs" selected="True" />
               </Node>
             </Node>
           </Node>

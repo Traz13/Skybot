@@ -8,6 +8,11 @@ public class Game : MonoBehaviour
 	
 #region 	EVENTS
 	
+	public delegate void WillLoad(Game game);
+	public static event WillLoad willLoad;
+	
+	public delegate void DidLoad(Game game);
+	public static event DidLoad didLoad;
 	
 	public delegate void TurnWillBegin(Game game);
 	public event TurnWillBegin turnWillBegin;
@@ -20,7 +25,6 @@ public class Game : MonoBehaviour
 	
 	public delegate void GameWillEnd(Game game);
 	public event GameWillEnd gameWillEnd;
-	
 	
 #endregion
 #region 	VARIABLES
@@ -52,6 +56,8 @@ public class Game : MonoBehaviour
 	int shotsFired = 0;
 	int shotsCompleted = 0;
 	
+	public Camera mainCamera;
+	
 #endregion
 #region UNITY_HOOKS
 	
@@ -66,6 +72,9 @@ public class Game : MonoBehaviour
 			throw new System.Exception("Only one instance of Game allowed!");
 		
 		instance = this;
+		
+		if( willLoad != null )
+			willLoad(this);
 		
 		// Gather and sort players by index.
 		Player[] playerComps = GetComponentsInChildren<Player>(false);
@@ -90,6 +99,9 @@ public class Game : MonoBehaviour
 		{
 			StartCoroutine(beginGameOverlayDidShow(menu));
 		};
+		
+		if( didLoad != null )
+			didLoad(this);
 	}
 	
 
@@ -109,7 +121,7 @@ public class Game : MonoBehaviour
 	protected virtual void Start()
 	{
 		// Just automatically begin the game for now.
-		StartCoroutine(BeginGame());
+		//StartCoroutine(BeginGame());
 	}
 	
 	
@@ -121,13 +133,15 @@ public class Game : MonoBehaviour
 	/// Initialize game data and begin the first turn.
 	/// </summary>
 	
-	public virtual IEnumerator BeginGame()		
+	public virtual void BeginGame()		
 	{		
+		StartCoroutine(beginGame());
+	}
+	
+	IEnumerator beginGame()
+	{
 		if( gameWillBegin != null )
 			gameWillBegin(this);
-		
-		// Load the level.
-		//Application.LoadLevel("")
 		
 		yield return new WaitForSeconds(1f);
 		

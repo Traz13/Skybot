@@ -26,8 +26,6 @@ public class UI : MonoBehaviour
 			throw new System.Exception("Only one instance of UI is allowed!");
 		
 		instance = this;
-		
-		Object.DontDestroyOnLoad(gameObject);
 	}
 	
 	
