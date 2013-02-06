@@ -68,10 +68,8 @@ public class Game : MonoBehaviour
 	
 	protected virtual void Awake()
 	{
-		if( instance != null )
-			throw new System.Exception("Only one instance of Game allowed!");
-		
-		instance = this;
+		if( instance == null )
+			instance = this;
 		
 		if( willLoad != null )
 			willLoad(this);
@@ -95,7 +93,9 @@ public class Game : MonoBehaviour
 		mCurrentPlayer = players[0];
 		
 		// Setup UI callbacks.
-		UI.instance.beginGameOverlay.didShow += delegate(UIMenu menu)
+		if(UI.instance != null)
+			UI.instance.beginGameOverlay.didShow += delegate(UIMenu menu)
+				
 		{
 			StartCoroutine(beginGameOverlayDidShow(menu));
 		};

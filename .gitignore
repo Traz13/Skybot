@@ -3,6 +3,7 @@ Temp/
 *.sln
 *.csproj
 *.pidb
+*.userprefs
 .DS_Store?
 ._*
 .Spotlight-V100
