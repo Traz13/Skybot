@@ -27,7 +27,7 @@ public class Building : MonoBehaviour
 	
 	void Start()
 	{		
-		Game.instance.turnWillBegin += gameTurnWillBegin;
+		Game.Instance.turnWillBegin += gameTurnWillBegin;
 	}
 	
 	

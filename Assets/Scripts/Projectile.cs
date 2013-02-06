@@ -58,7 +58,7 @@ public class Projectile : MonoBehaviour
 	void OnTriggerExit(Collider otherCollider)
 	{
 		// Destroy the projectile automatically when it exits the game world.
-		if( otherCollider.gameObject == Game.instance.gameObject )
+		if( otherCollider.gameObject == Game.Instance.gameObject )
 			Destroy(gameObject);
 	}
 	

@@ -56,8 +56,8 @@ public class UIMainMenu : MonoBehaviour
 		// Pan the camera down to the playing area.
 		Vector3[] path = new Vector3[3];
 		path[0] = Camera.main.transform.position;
-		path[1] = new Vector3(path[0].x, path[0].y-10, Game.instance.mainCamera.transform.position.z);
-		path[2] = Game.instance.mainCamera.transform.position;
+		path[1] = new Vector3(path[0].x, path[0].y-10, Game.Instance.mainCamera.transform.position.z);
+		path[2] = Game.Instance.mainCamera.transform.position;
 		
 		iTween.MoveTo(Camera.main.gameObject, iTween.Hash(
 			"path", path,
@@ -75,7 +75,7 @@ public class UIMainMenu : MonoBehaviour
 		
 		gameObject.SetActive(false);
 		
-		Game.instance.BeginGame();
+		Game.Instance.BeginGame();
 	}
 }
 

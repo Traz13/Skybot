@@ -48,7 +48,7 @@ public class Deathmatch : Game
 			return true;
 		
 		// Check each player to see if anyone has reached the kill limit.
-		foreach( Player player in Game.instance.players )
+		foreach( Player player in Game.Instance.players )
 		{
 			if( player.score >= killLimit )
 				return true;
