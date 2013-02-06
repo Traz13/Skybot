@@ -1,27 +1,12 @@
 using UnityEngine;
 using System.Collections;
 
-public class SlowMo : MonoBehaviour
-{
-	public static SlowMo instance;
-	
+public class SlowMo : StaticInstance<SlowMo>
+{		
 	public bool armed = true;
 	public bool on = false;
 	public float timer = 0f;
 	public float duration = 0.2f;
-	
-	
-	/// <summary>
-	/// Awake this instance.
-	/// </summary>
-	
-	void Awake()
-	{
-		if( instance != null )
-			throw new System.Exception("Only one instance of SlowMo is allowed!");
-		
-		instance = this;
-	}
 	
 	
 	/// <summary>

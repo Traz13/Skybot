@@ -5,7 +5,7 @@ public class SlowMoZone : MonoBehaviour
 {
 	void OnTriggerEnter(Collider collider)
 	{
-		if( SlowMo.instance == null )
+		if( SlowMo.Instance == null )
 		{
 			Debug.LogError("There's no SlowMo component in the game!");
 			return;
@@ -16,12 +16,12 @@ public class SlowMoZone : MonoBehaviour
 			collider.gameObject.GetComponent<Projectile>() == null )
 			return;
 
-		SlowMo.instance.on = true;
+		SlowMo.Instance.on = true;
 	}
 	
 	void OnTriggerExit(Collider collider)
 	{
-		if( SlowMo.instance == null )
+		if( SlowMo.Instance == null )
 		{
 			Debug.LogError("There's no SlowMo component in the game!");
 			return;
@@ -31,7 +31,7 @@ public class SlowMoZone : MonoBehaviour
 			collider.gameObject.GetComponent<Projectile>() == null )
 			return;
 		
-		SlowMo.instance.timer = SlowMo.instance.duration;
+		SlowMo.Instance.timer = SlowMo.Instance.duration;
 	}
 }
 

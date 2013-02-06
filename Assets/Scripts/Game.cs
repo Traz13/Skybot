@@ -70,11 +70,7 @@ public class Game : StaticInstance<Game>
 	}
 	
 	void OnEnable()
-	{
-		//if( instance == null )
-		//	instance = this;
-		//this = Instance;
-		
+	{		
 		if( willLoad != null )
 			willLoad(this);
 		
@@ -87,11 +83,19 @@ public class Game : StaticInstance<Game>
 		foreach( Player player in playerComps )
 		{
 			players[player.playerIndex] = player;
+			
+			// Error check
 			Launcher launcher = player.GetComponent<Launcher>();
+			SlowMoZone slowMoZone = player.GetComponentInChildren<SlowMoZone>();
+			Damageable damageable = player.GetComponent<Damageable>();
 			if( launcher == null )
-				Debug.Log(player.name + " doesn't have a Launcher component!");
-			else
-				launcher.didFireProjectile += shotFired;
+				Debug.LogWarning(player.name + " doesn't have a Launcher component!");
+			if( slowMoZone == null )
+				Debug.LogWarning(player.name + " doesn't have a SlowMoZone!");
+			if( damageable == null )
+				Debug.LogWarning(player.name + " doesn't have a Damageable component!");
+			
+			launcher.didFireProjectile += shotFired;
 		}
 		
 		mCurrentPlayer = players[0];
@@ -99,7 +103,7 @@ public class Game : StaticInstance<Game>
 		// Setup UI callbacks.
 		if(UI.instance != null)
 			UI.instance.beginGameOverlay.didShow += delegate(UIMenu menu)
-				
+
 		{
 			StartCoroutine(beginGameOverlayDidShow(menu));
 		};
@@ -124,8 +128,8 @@ public class Game : StaticInstance<Game>
 	
 	protected virtual void Start()
 	{
-		// Just automatically begin the game for now.
-		//StartCoroutine(BeginGame());
+		if( UI.instance == null || UI.instance.mainMenu == null )
+			StartCoroutine(beginGame());
 	}
 	
 	
@@ -150,7 +154,8 @@ public class Game : StaticInstance<Game>
 		yield return new WaitForSeconds(1f);
 		
 		// Show beginning of game UI overlay.
-		UI.instance.beginGameOverlay.Show();		
+		if( UI.instance != null )
+			UI.instance.beginGameOverlay.Show();		
 		
 		yield return new WaitForSeconds(0.2f);
 		
@@ -179,14 +184,23 @@ public class Game : StaticInstance<Game>
 			turnWillBegin(this);
 		
 		// Refill their shots.
-		currentPlayer.GetComponent<Launcher>().shotsRemaining = shotsPerTurn;
+		Launcher launcher = currentPlayer.GetComponent<Launcher>();
+		if( launcher != null )
+			launcher.shotsRemaining = shotsPerTurn;
 		
 		// Disable the current player's slowmo zone, and enable the opponents'.
-		currentPlayer.GetComponentInChildren<SlowMoZone>().gameObject.SetActive(false);
+		SlowMoZone slowMoZone = currentPlayer.GetComponentInChildren<SlowMoZone>();
+		if( slowMoZone != null )
+			slowMoZone.gameObject.SetActive(false);
+		
 		foreach( Player player in players )
 		{
 			if( player != currentPlayer )
-				player.GetComponentInChildren<SlowMoZone>().gameObject.SetActive(true);
+			{
+				slowMoZone = player.GetComponentInChildren<SlowMoZone>();
+				if( slowMoZone != null )
+					slowMoZone.gameObject.SetActive(true);
+			}
 		}
 	}
 	
@@ -285,13 +299,13 @@ public class Game : StaticInstance<Game>
 	}
 	
 	
-	void playerWillDie(Damageable damageable)
+	void playerWillDie(Damageable _damageable)
 	{
 		Player livingPlayer = null;
 		foreach( Player player in players )
 		{
-			Damageable dmgable = player.GetComponent<Damageable>();
-			if( dmgable == null || dmgable.health > 0f )
+			Damageable damageable = player.GetComponent<Damageable>();
+			if( damageable == null || damageable.health > 0f )
 			{
 				// If we have more than one living player, don't do anything.
 				if( livingPlayer != null )
@@ -325,12 +339,6 @@ public class Game : StaticInstance<Game>
 	void shotCompleted(Projectile projectile)
 	{
 		shotsCompleted++;
-	}
-	
-	
-	void gitIsFucked()
-	{
-		
 	}
 	
 	
