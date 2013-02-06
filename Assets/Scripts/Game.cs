@@ -2,9 +2,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Game : MonoBehaviour
+public class Game : StaticInstance<Game>
 {
-	public static Game instance;
+	//public static Game instance;
 	
 #region 	EVENTS
 	
@@ -66,10 +66,14 @@ public class Game : MonoBehaviour
 	/// Awake this instance.
 	/// </summary>
 	
-	protected virtual void Awake()
+	protected virtual void Awake() {
+	}
+	
+	void OnEnable()
 	{
-		if( instance == null )
-			instance = this;
+		//if( instance == null )
+		//	instance = this;
+		//this = Instance;
 		
 		if( willLoad != null )
 			willLoad(this);

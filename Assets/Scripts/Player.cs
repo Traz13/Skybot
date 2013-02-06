@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
 	
 	// Whether it's my turn or not.
 	public bool isMyTurn {
-		get { return (this == Game.instance.currentPlayer); }
+		get { return (this == Game.Instance.currentPlayer); }
 	}
 	
 	// Player Mode (eg. Fire, Move)
@@ -84,7 +84,7 @@ public class Player : MonoBehaviour
 	
 	void Start()
 	{
-		Game.instance.turnWillBegin += gameTurnWillBegin;
+		Game.Instance.turnWillBegin += gameTurnWillBegin;
 	}
 	
 	
@@ -124,7 +124,7 @@ public class Player : MonoBehaviour
 		aiming = true;
 		downPoint = Input.mousePosition;
 		
-		Game.instance.FocusOnCurrentPlayer();
+		Game.Instance.FocusOnCurrentPlayer();
 	}
 	
 	
@@ -137,7 +137,7 @@ public class Player : MonoBehaviour
 		if( !isMyTurn )
 			return;
 		
-		Game rules = Game.instance;
+		Game rules = Game.Instance;
 		
 		aim = downPoint - Input.mousePosition;
 		velocity = Mathf.Min(0.5f * aim.magnitude, (mode == PlayerMode.Fire) ? rules.maxFireVelocity : rules.maxMoveVelocity);
