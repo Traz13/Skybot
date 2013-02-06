@@ -26,21 +26,16 @@ public class Building : MonoBehaviour
 	
 	void Start()
 	{
-		StartCoroutine(delayedStart());
+		if( Application.isPlaying )
+		{
+			iTween.MoveTo(gameObject, new Hashtable() {
+				{ "position", new Vector3(transform.position.x, Random.Range(-3f, 7f), transform.position.z) },
+				{ "easetype", "easeInOutSine" },
+				{ "time", 3f }
+			});
+		}
 		
 		//Game.instance.turnWillBegin += gameTurnWillBegin;
-	}
-	
-	
-	IEnumerator delayedStart()
-	{
-		yield return new WaitForSeconds(1);
-		
-		iTween.MoveTo(gameObject, new Hashtable() {
-			{ "position", new Vector3(transform.position.x, Random.Range(-3f, 7f), transform.position.z) },
-			{ "easetype", "easeInOutSine" },
-			{ "time", 3f }
-		});
 	}
 	
 	
@@ -67,7 +62,7 @@ public class Building : MonoBehaviour
 		iTween.MoveTo(gameObject, new Hashtable() {
 			{ "position", new Vector3(transform.position.x, 0f, transform.position.z) },
 			{ "easetype", "easeInOutSine" },
-			{ "time", 2f }
+			{ "time", 3f }
 		});
 	}
 	
