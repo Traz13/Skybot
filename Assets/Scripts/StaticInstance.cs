@@ -18,7 +18,7 @@ public abstract class StaticInstance<T> : MonoBehaviour where T : Component
                     if (sys == null)
 					{
                         sys = new GameObject("SystemInternals");
-						sys.AddComponent<DontDestroyOnLoad>();
+						Object.DontDestroyOnLoad(sys);
 					}
                     GameObject go = new GameObject(typeof(T).Name);
                     go.transform.parent = sys.transform;
