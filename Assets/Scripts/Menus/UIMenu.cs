@@ -3,7 +3,15 @@ using System.Collections;
 
 public class UIMenu : MonoBehaviour
 {
+	public enum AnimationStyle {
+		None,
+		Scale,
+		//Slide,
+		//Flip,
+	}
+	
 #region 	EVENTS
+	
 	
 	public delegate void WillShow(UIMenu menu);
 	public delegate void DidShow(UIMenu menu);
@@ -15,49 +23,114 @@ public class UIMenu : MonoBehaviour
 	public event WillHide willHide;
 	public event DidHide didHide;
 	
+	
+#endregion
+#region 	VARIABLES
+	
+	public AnimationStyle animationStyle = AnimationStyle.Scale;
+	
+	// Duration (0 == infinity).
+	public float duration = 2f;
+	float durationTimer = 0f;
+	bool durationTimerOn = false;
+	
+	public Transform cameraTransform;
+	
+#endregion
+#region 	UNITY_HOOKS
+	
+	
+	/// <summary>
+	/// Update this instance.
+	/// </summary>
+	
+	protected virtual void Update()
+	{
+		if( durationTimerOn )
+		{
+			// Hide the menu once our duration has elapsed.
+			durationTimer += Time.deltaTime;
+			if( durationTimer >= duration )
+			{
+				// Deactivate the timer and reset it.
+				durationTimerOn = false;
+				durationTimer = 0f;
+				
+				// Hide the menu.
+				Hide(animationStyle);
+			}
+		}
+	}
+	
+
 #endregion
 #region 	METHODS
+	
+	
+	/// <summary>
+	/// Show the menu with the current animation style.
+	/// </summary>
+	
+	public void Show() 
+	{
+		Show(animationStyle);
+	}
+	
+	
+	/// <summary>
+	/// Hide the menu with the current animation style.
+	/// </summary>
+	
+	public void Hide()
+	{
+		Hide(animationStyle);
+	}
 	
 	
 	/// <summary>
 	/// Show the menu.
 	/// </summary>
 	
-	public virtual void Show(bool animated)
+	public virtual void Show(AnimationStyle style)
 	{
 		if( willShow != null )
 			willShow(this);
 		
-		transform.localScale = Vector3.zero;
-		gameObject.SetActive(true);
-		
-		if( animated )
+		switch( style )	
 		{
-			TweenScale.Begin(gameObject, 0.15f, new Vector3(1.1f, 1.1f, 1.1f)).onFinished += delegate(UITweener tweenerA) 
+			case AnimationStyle.None:
 			{
-				TweenScale.Begin(gameObject, 0.05f, Vector3.one).onFinished += delegate(UITweener tweenerB) 
+				// Just instantly scale the menu up to full size and send the didShow event.
+				transform.localScale = Vector3.one;
+				gameObject.SetActive(true);
+				if( didShow != null )
+					didShow(this);
+			
+				break;
+			}
+			case AnimationStyle.Scale:
+			{
+				transform.localScale = Vector3.zero;
+				gameObject.SetActive(true);
+				
+				// Scale the whole menu up from nothing with a slight bounce.
+				TweenScale.Begin(gameObject, 0.15f, new Vector3(1.1f, 1.1f, 1.1f)).onFinished += delegate(UITweener tweenerA) 
 				{
-					if( didShow != null )
-						didShow(this);
+					TweenScale.Begin(gameObject, 0.05f, Vector3.one).onFinished += delegate(UITweener tweenerB) 
+					{
+						// Send the didShow only after all animations have completed.
+						if( didShow != null )
+							didShow(this);
+					};
 				};
-			};
+			
+				break;
+			}
 		}
-		else
-		{
-			transform.localScale = Vector3.one;
-			if( didShow != null )
-				didShow(this);
-		}
-	}
-	
-	
-	/// <summary>
-	/// Show the menu, animated by default.
-	/// </summary>
-	
-	public void Show() 
-	{
-		Show(true);
+		
+		// Start the duration timer (if we have a duration).
+		if( duration > 0f )
+			durationTimerOn = true;
 	}
 	
 	
@@ -65,43 +138,44 @@ public class UIMenu : MonoBehaviour
 	/// Hide the menu.
 	/// </summary>
 	
-	public virtual void Hide(bool animated)
+	public virtual void Hide(AnimationStyle style)
 	{
 		if( willHide != null )
 			willHide(this);
 		
-		if( animated )
+		switch( style )
 		{
-			TweenScale.Begin(gameObject, 0.15f, new Vector3(1.1f, 1.1f, 1.1f)).onFinished += delegate(UITweener tweenerA) 
+			case AnimationStyle.None:
 			{
-				TweenScale.Begin(gameObject, 0.05f, Vector3.zero).onFinished += delegate(UITweener tweenerB) 
-				{
-					if( didHide != null )
-						didHide(this);
-					
-					gameObject.SetActive(false);
-				};
-			};
-		}
-		else
-		{
-			transform.localScale = Vector3.zero;
-			if( didHide != null )
-				didHide(this);
+				// Instantly scale the menu down to full size and send the didHide event.
+				transform.localScale = Vector3.zero;
+				if( didHide != null )
+					didHide(this);
+				
+				// Deactivate the menu now that it's hidden.
+				gameObject.SetActive(false);
 			
-			gameObject.SetActive(false);
+				break;
+			}
+			case AnimationStyle.Scale:
+			{
+				// Scale the whole menu down to nothing with a slight bounce.
+				TweenScale.Begin(gameObject, 0.15f, new Vector3(1.1f, 1.1f, 1.1f)).onFinished += delegate(UITweener tweenerA) 
+				{
+					TweenScale.Begin(gameObject, 0.05f, Vector3.zero).onFinished += delegate(UITweener tweenerB) 
+					{
+						// Send the didHide only after all animations have completed.
+						if( didHide != null )
+							didHide(this);
+						
+						// Deactivate the menu now that it's hidden.
+						gameObject.SetActive(false);
+					};
+				};
+			
+				break;
+			}
 		}
-	}
-	
-	
-	/// <summary>
-	/// Hide the menu, animated by default.
-	/// </summary>
-	
-	public void Hide()
-	{
-		// Hide with animation by default.
-		Hide(true);
 	}
 	
 	

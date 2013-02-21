@@ -22,16 +22,6 @@ public class Building : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Start this instance.
-	/// </summary>
-	
-	void Start()
-	{		
-		Game.Instance.turnWillBegin += gameTurnWillBegin;
-	}
-	
-	
-	/// <summary>
 	/// Update this instance.
 	/// </summary>
 	
@@ -47,16 +37,6 @@ public class Building : MonoBehaviour
 	
 #endregion
 #region 	METHODS
-	
-	
-	void gameTurnWillBegin(Game game)
-	{
-		iTween.MoveTo(gameObject, new Hashtable() {
-			{ "position", new Vector3(transform.position.x, Random.Range(shiftMin, shiftMax), transform.position.z) },
-			{ "easetype", "easeInOutSine" },
-			{ "time", 3f }
-		});
-	}
 	
 	
 	/// <summary>

@@ -9,27 +9,18 @@ public class Player : MonoBehaviour
 		Fire,
 	}
 	
-#region 	EVENTS
-	
-	
-	public delegate void DidDie(Player player);
-	public event DidDie didDie;
-	
-	
-#endregion
 #region 	VARIABLES
 	
 	
 	// Player Index
-	public int playerIndex = 0;
+	int mPlayerIndex = 0;
+	public int playerIndex {
+		get { return mPlayerIndex; }
+		set { mPlayerIndex = value; }
+	}
 	
 	// Score
 	public int score = 0;
-	
-	// Whether it's my turn or not.
-	public bool isMyTurn {
-		get { return (this == Game.Instance.currentPlayer); }
-	}
 	
 	// Player Mode (eg. Fire, Move)
 	PlayerMode mMode = PlayerMode.Fire;
@@ -38,18 +29,19 @@ public class Player : MonoBehaviour
 		set { SetMode(value); }
 	}
 	
-	[HideInInspector]
+	// Color
+	public Color color;
+	
+	// Launcher
 	public Launcher launcher;
 	
-	[HideInInspector]
+	// Aiming Stuff
 	public bool aiming = false;	
-	
 	public int trajectorySamples = 50;
-	
-	LineRenderer lineRenderer;
 	Vector3 downPoint;
 	Vector3 aim;
 	float velocity = 0f;
+	LineRenderer lineRenderer;
 	
 	
 #endregion
@@ -62,6 +54,11 @@ public class Player : MonoBehaviour
 	
 	void Awake()
 	{
+		// HACK: Make sure the game is initialized.
+		Game game = Game.Instance;
+		if( game == null )
+			throw new System.Exception("Game doesn't exist");
+		
 		// Line Renderer
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
 		lineRenderer.SetVertexCount(trajectorySamples);
@@ -69,29 +66,12 @@ public class Player : MonoBehaviour
 		lineRenderer.SetColors(Color.red, new Color(1f, 0f, 0f, 0.0f));
 		lineRenderer.SetWidth(0.2f, 0.2f);
 		
-		// Grab our launcher instance (if we have one).
-		launcher = gameObject.GetComponent<Launcher>();
-		
 		Damageable damageable = gameObject.GetComponent<Damageable>();
 		if( damageable )
 			damageable.willDie += willDie;
-	}
-	
-	
-	/// <summary>
-	/// Start this instance.
-	/// </summary>
-	
-	void Start()
-	{
-		Game.Instance.turnWillBegin += gameTurnWillBegin;
-	}
-	
-	
-	void willDie(Damageable damageable)
-	{
-		rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezePositionZ;
-		rigidbody.AddForce(damageable.lastCollision.relativeVelocity);
+		
+		// Set the material color
+		gameObject.renderer.material.color = color;
 	}
 	
 	
@@ -107,7 +87,7 @@ public class Player : MonoBehaviour
 			
 			lineRenderer.SetVertexCount(trajectorySamples);
 			for( int i = 0; i < points.Length; i++ )
-				lineRenderer.SetPosition(i, points[i]);			
+				lineRenderer.SetPosition(i, points[i]);
 		}
 	}
 	
@@ -118,13 +98,12 @@ public class Player : MonoBehaviour
 	
 	void OnMouseDown()
 	{
-		if( !isMyTurn )
+		// Only allow the current player to aim.
+		if( !Game.Instance.rules.AllowUserAction(gameObject) )
 			return;
 		
 		aiming = true;
 		downPoint = Input.mousePosition;
-		
-		Game.Instance.FocusOnCurrentPlayer();
 	}
 	
 	
@@ -134,10 +113,10 @@ public class Player : MonoBehaviour
 	
 	void OnMouseDrag()
 	{
-		if( !isMyTurn )
+		if( !aiming )
 			return;
 		
-		Game rules = Game.Instance;
+		Rules rules = Game.Instance.rules;
 		
 		aim = downPoint - Input.mousePosition;
 		velocity = Mathf.Min(0.5f * aim.magnitude, (mode == PlayerMode.Fire) ? rules.maxFireVelocity : rules.maxMoveVelocity);
@@ -151,17 +130,12 @@ public class Player : MonoBehaviour
 	
 	void OnMouseUp()
 	{
-		if( !isMyTurn )
-		{
-			// TODO: Fade in player info with a timer to fade back out.
+		if( !aiming )
 			return;
-		}
 		
 		// If there's little or no velocity, count it as a tap and switch modes.
 		if( velocity < 0.001f )
-		{
 			mode = (mode == PlayerMode.Fire) ? PlayerMode.Move : PlayerMode.Fire;
-		}
 		else
 		{
 			if( mode == PlayerMode.Fire )
@@ -180,24 +154,24 @@ public class Player : MonoBehaviour
 	}
 	
 	
-	void OnCollisionEnter(Collision collision)
-	{
-		// TODO : Take damage on collision with a projectile.
-	}
-	
-	
 #endregion
 #region 	METHODS
 	
 	
 	/// <summary>
-	/// Games the turn will begin.
+	/// Callback for Damageable component.
 	/// </summary>
 	
-	void gameTurnWillBegin(Game game)
+	void willDie(Damageable damageable)
 	{
-		// Keep players from intersecting buildings during their shift.
-		rigidbody.WakeUp();
+		// Remove rigidbody constraints to allow the player to tumble and fall.
+		rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | 
+								RigidbodyConstraints.FreezeRotationY | 
+								RigidbodyConstraints.FreezePositionZ;
+		
+		// Make sure the force gets to the rigidbody correctly now that 
+		// we've removed our constraints.
+		rigidbody.AddForce(damageable.lastCollision.relativeVelocity);
 	}
 	
 	
@@ -207,6 +181,9 @@ public class Player : MonoBehaviour
 	
 	public void SetMode(PlayerMode _mode)
 	{
+		// Change the trajectory line color depending on our mode.
+		// TODO: Show this in the player himself with a fresnel glow. Or maybe 
+		//		 remove mode-switching entirely, using rocket jumps instead to move.
 		mMode = _mode;
 		if( mode == PlayerMode.Fire )
 			lineRenderer.SetColors(Color.red, new Color(1f, 0f, 0f, 0f));

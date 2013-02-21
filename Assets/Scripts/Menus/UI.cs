@@ -2,9 +2,8 @@ using UnityEngine;
 using System.Collections;
 
 public class UI : MonoBehaviour
-{
-	// Singleton
-	public static UI instance;
+{	
+	public static UI Instance = null;
 	
 #region 	VARIABLES
 	
@@ -13,22 +12,13 @@ public class UI : MonoBehaviour
 	public UIEndGame endGameOverlay;
 	
 #endregion
-#region UNITY_HOOKS
-	
-	
-	/// <summary>
-	/// Awake this instance.
-	/// </summary>
 	
 	void Awake()
 	{
-		if( instance != null )
-			throw new System.Exception("Only one instance of UI is allowed!");
+		if( Instance != null )
+			throw new System.Exception("There can only be one instance of UI");
 		
-		instance = this;
+		Instance = this;
 	}
-	
-	
-#endregion
 }
 

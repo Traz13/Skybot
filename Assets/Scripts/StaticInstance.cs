@@ -16,7 +16,10 @@ public abstract class StaticInstance<T> : MonoBehaviour where T : Component
                 {
                     GameObject sys = GameObject.Find("SystemInternals");
                     if (sys == null)
+					{
                         sys = new GameObject("SystemInternals");
+						sys.AddComponent<DontDestroyOnLoad>();
+					}
                     GameObject go = new GameObject(typeof(T).Name);
                     go.transform.parent = sys.transform;
                     Debug.Log("Creating singleton of type " + typeof(T).Name, go);

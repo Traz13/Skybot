@@ -1,28 +1,9 @@
 using UnityEngine;
 using System.Collections;
 
-public class Deathmatch : Game
+public class TurnBasedDeathmatchRules : TurnBasedRules
 {	
-	int killLimit = 1;
-	
-	/// <summary>
-	/// Awake this instance.
-	/// </summary>
-	
-	protected override void Awake()
-	{
-		base.Awake();
-		
-		// Setup player callbacks.
-		foreach( Player player in players )
-		{
-			Damageable damageable = player.GetComponent<Damageable>();
-			if( damageable == null )
-				Debug.Log(player.name + " doesn't have a Damageable component!");
-			else
-				damageable.willDie += playerWillDie;
-		}
-	}
+	public int killLimit = 1;
 	
 	
 	/// <summary>
@@ -34,6 +15,9 @@ public class Deathmatch : Game
 		// Award a point if the dying player isn't the current one.
 		if( damageable.gameObject != currentPlayer.gameObject )
 			currentPlayer.score++;
+		
+		if( IsGameOver() )
+			EndGame();
 	}
 	
 	
@@ -58,11 +42,15 @@ public class Deathmatch : Game
 	}
 	
 	
+	/// <summary>
+	/// Gets the winning players.
+	/// </summary>
+	
 	public override Hashtable GetWinners()
 	{
 		Hashtable winners = new Hashtable();
 		
-		foreach( Player player in players )
+		foreach( Player player in Game.Instance.players )
 		{
 			if( player.score >= killLimit )
 				winners.Add(player.name, player);
@@ -72,22 +60,23 @@ public class Deathmatch : Game
 	}
 	
 	
-	protected override void EndGame()
+	/// <summary>
+	/// Begins the game.
+	/// </summary>
+	
+	public override void BeginGame()
 	{
-		base.EndGame();
+		base.BeginGame();
 		
-		Hashtable winners = GetWinners();
-		if( winners.Count == 0 )
-			throw new System.Exception("No winners found in EndGame()!");
-		
-		string message = "";
-		foreach( Player player in winners.Values )
-			message += (message.Length == 0) ? player.name : " & "+player.name;
-		
-		message += (winners.Count > 1) ? " Wins!" : " Win!";
-		
-		// Show end of game UI overlay.
-		
+		// Setup player callbacks.
+		foreach( Player player in Game.Instance.players )
+		{
+			Damageable damageable = player.GetComponent<Damageable>();
+			if( damageable == null )
+				Debug.Log(player.name + " doesn't have a Damageable component!");
+			else
+				damageable.willDie += playerWillDie;
+		}
 	}
 }
 

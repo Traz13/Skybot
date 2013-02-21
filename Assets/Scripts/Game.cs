@@ -4,9 +4,7 @@ using System.Collections.Generic;
 
 public class Game : StaticInstance<Game>
 {
-	//public static Game instance;
-	
-#region 	EVENTS
+#region EVENTS
 	
 	public delegate void WillLoad(Game game);
 	public static event WillLoad willLoad;
@@ -14,331 +12,72 @@ public class Game : StaticInstance<Game>
 	public delegate void DidLoad(Game game);
 	public static event DidLoad didLoad;
 	
-	public delegate void TurnWillBegin(Game game);
-	public event TurnWillBegin turnWillBegin;
-	
-	public delegate void TurnWillEnd(Game game);
-	public event TurnWillEnd turnWillEnd;
-	
-	public delegate void GameWillBegin(Game game);
-	public event GameWillBegin gameWillBegin;
-	
-	public delegate void GameWillEnd(Game game);
-	public event GameWillEnd gameWillEnd;
-	
 #endregion
 #region 	VARIABLES
 	
-	// Maximum Rounds
-	public readonly int maxRounds = 0;	// (0 == infinite)
-	
-	// Current Round
-	protected int currentRound = 0;
-	
-	// Shots per Turn
-	public int shotsPerTurn = 3;
-	
-	// Current Player
-	Player mCurrentPlayer;
-	public Player currentPlayer {
-		get { return mCurrentPlayer; }
-	}
-	
-	// Maximum Velocities
-	public float maxFireVelocity = 35f;
-	public float maxMoveVelocity = 15f;
-	
 	// Players
-	[HideInInspector]
-	public Player[] players;
+	public ArrayList players;
 	
-	// Logs/Counters
-	int shotsFired = 0;
-	int shotsCompleted = 0;
-	
-	public Camera mainCamera;
+	// Rules
+	public Rules rules;
 	
 #endregion
 #region UNITY_HOOKS
 	
 	
 	/// <summary>
-	/// Awake this instance.
+	/// Enable this instance.
 	/// </summary>
 	
-	protected virtual void Awake() {
+	void OnEnable()
+	{
+		LoadGame();
+		
+		// If we have no menus, just automatically begin the game.
+		if( UI.Instance == null || UI.Instance.mainMenu == null )
+			rules.BeginGame();
 	}
 	
-	void OnEnable()
-	{		
+	
+	void OnLevelWasLoaded()
+	{
+		LoadGame();
+	}
+	
+	
+	public void LoadGame()
+	{
+		// Send event.
 		if( willLoad != null )
 			willLoad(this);
 		
-		// Gather and sort players by index.
-		Player[] playerComps = GetComponentsInChildren<Player>(false);
-		if( playerComps.Length == 0 )
-			throw new System.Exception("Must have at least one Player!");
-		
-		players = new Player[playerComps.Length];
-		foreach( Player player in playerComps )
+		// Gather all the players.	
+		players = new ArrayList();
+		Player[] playersInScene = GameObject.FindObjectsOfType(typeof(Player)) as Player[];
+		for( int i = 0; i < playersInScene.Length; i++ )
 		{
-			players[player.playerIndex] = player;
-			
-			// Error check
-			Launcher launcher = player.GetComponent<Launcher>();
-			SlowMoZone slowMoZone = player.GetComponentInChildren<SlowMoZone>();
-			Damageable damageable = player.GetComponent<Damageable>();
-			if( launcher == null )
-				Debug.LogWarning(player.name + " doesn't have a Launcher component!");
-			if( slowMoZone == null )
-				Debug.LogWarning(player.name + " doesn't have a SlowMoZone!");
-			if( damageable == null )
-				Debug.LogWarning(player.name + " doesn't have a Damageable component!");
-			
-			launcher.didFireProjectile += shotFired;
+			Player player = playersInScene[i];
+			player.playerIndex = i;
+			players.Add(player);
 		}
 		
-		mCurrentPlayer = players[0];
+		// Look for game rules.
+		//if( rules != null )
+		//	Destroy(rules.gameObject);
 		
-		// Setup UI callbacks.
-		if(UI.instance != null)
-			UI.instance.beginGameOverlay.didShow += delegate(UIMenu menu)
-
+		rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
+		if( rules == null )
 		{
-			StartCoroutine(beginGameOverlayDidShow(menu));
-		};
+			Debug.LogWarning("No rules found! Creating defaults...");
+			GameObject rulesObject = new GameObject("DefaultRules");
+			rules = rulesObject.AddComponent<Rules>();
+		}
 		
+		// Send event.
 		if( didLoad != null )
 			didLoad(this);
-	}
-	
-
-	IEnumerator beginGameOverlayDidShow(UIMenu menu)
-	{
-		// Let the menu stay onscreen for a moment, then hide it.
-		yield return new WaitForSeconds(2f);
 		
-		menu.Hide();
-	}
-	
-	
-	/// <summary>
-	/// Start this instance.
-	/// </summary>
-	
-	protected virtual void Start()
-	{
-		if( UI.instance == null || UI.instance.mainMenu == null )
-			StartCoroutine(beginGame());
-	}
-	
-	
-#endregion
-#region 	METHODS
-
-	
-	/// <summary>
-	/// Initialize game data and begin the first turn.
-	/// </summary>
-	
-	public virtual void BeginGame()		
-	{		
-		StartCoroutine(beginGame());
-	}
-	
-	IEnumerator beginGame()
-	{
-		if( gameWillBegin != null )
-			gameWillBegin(this);
-		
-		yield return new WaitForSeconds(1f);
-		
-		// Show beginning of game UI overlay.
-		if( UI.instance != null )
-			UI.instance.beginGameOverlay.Show();		
-		
-		yield return new WaitForSeconds(0.2f);
-		
-		BeginTurn();
-	}
-	
-	
-	/// <summary>
-	/// End the game.
-	/// </summary>
-	
-	protected virtual void EndGame() 		
-	{		
-		if( gameWillEnd != null )
-			gameWillEnd(this);
-	}
-	
-	
-	/// <summary>
-	/// Begin the next turn.
-	/// </summary>
-	
-	protected virtual void BeginTurn()		
-	{		
-		if( turnWillBegin != null )
-			turnWillBegin(this);
-		
-		// Refill their shots.
-		Launcher launcher = currentPlayer.GetComponent<Launcher>();
-		if( launcher != null )
-			launcher.shotsRemaining = shotsPerTurn;
-		
-		// Disable the current player's slowmo zone, and enable the opponents'.
-		SlowMoZone slowMoZone = currentPlayer.GetComponentInChildren<SlowMoZone>();
-		if( slowMoZone != null )
-			slowMoZone.gameObject.SetActive(false);
-		
-		foreach( Player player in players )
-		{
-			if( player != currentPlayer )
-			{
-				slowMoZone = player.GetComponentInChildren<SlowMoZone>();
-				if( slowMoZone != null )
-					slowMoZone.gameObject.SetActive(true);
-			}
-		}
-	}
-	
-	
-	/// <summary>
-	/// End the turn and start the next one.
-	/// </summary>
-	
-	protected virtual void EndTurn()
-	{
-		if( !IsTurnOver() )
-		{
-			Debug.LogWarning("Trying to end turn prematurely!");
-			return;
-		}
-		
-		if( turnWillEnd != null )
-			turnWillEnd(this);
-		
-		// Advance to the next player, as well as the round if we're on the last player.
-		int nextPlayerIndex = currentPlayer.playerIndex + 1;
-		if( nextPlayerIndex >= players.Length )
-		{
-			currentRound++;
-			nextPlayerIndex = 0;
-		}
-		
-		// Check if the GameOver conditions have been met, and
-		// end the game automatically if they have.
-		if( IsGameOver() )
-		{
-			EndGame();
-			return;
-		}
-		
-		BeginTurn();
-	}
-	
-	
-	/// <summary>
-	/// Have the conditions been met for the end of a turn?
-	/// </summary>
-	
-	protected virtual bool IsTurnOver()	
-	{
-		return true;//(shotsCompleted >= shotsPerTurn);
-	}
-	
-	
-	/// <summary>
-	/// Have the conditions been met for the end of the game?
-	/// </summary>
-	
-	protected virtual bool IsGameOver()	
-	{
-		return (maxRounds > 0 && currentRound > maxRounds);
-	}
-	
-	
-	/// <summary>
-	/// Gets the winners (players with highest score, by default).
-	/// </summary>
-	
-	public virtual Hashtable GetWinners()
-	{
-		Hashtable winners = new Hashtable();
-		
-		int highscore = 0;
-		foreach( Player player in players )
-		{
-			if( player.score > highscore )
-			{
-				winners.Clear();
-				winners.Add(player.name, player);
-				highscore = player.score;
-			}
-			else if( player.score == highscore )
-				winners.Add(player.name, player);
-		}
-		
-		return winners;
-	}
-	
-	
-	/// <summary>
-	/// Focuses the main camera on the current player.
-	/// </summary>
-	
-	public virtual void FocusOnCurrentPlayer()
-	{
-		// Animate the camera to the player's x,y
-		/*Vector3 playerPos = GetCurrentPlayer().transform.position;
-		Vector3 camPos = mainCamera.transform.position;
-		SpringPosition.Begin(mainCamera.gameObject, new Vector3(playerPos.x, camPos.y, camPos.z), 3f).worldSpace = true;
-		TweenFOV.Begin(mainCamera.gameObject, 1.5f, 40f);*/
-	}
-	
-	
-	void playerWillDie(Damageable _damageable)
-	{
-		Player livingPlayer = null;
-		foreach( Player player in players )
-		{
-			Damageable damageable = player.GetComponent<Damageable>();
-			if( damageable == null || damageable.health > 0f )
-			{
-				// If we have more than one living player, don't do anything.
-				if( livingPlayer != null )
-					return;
-				
-				livingPlayer = player;
-			}
-		}
-		
-		EndGame();
-	}
-	
-	
-	/// <summary>
-	/// Callback for newly fired projectile. 
-	/// </summary>
-	
-	void shotFired(Launcher launcher, Projectile projectile)
-	{
-		// Log every projectile fired, so that we can be sure when they've all exploded.		
-		shotsFired++;
-		
-		projectile.didExplode += shotCompleted;
-	}
-	
-	
-	/// <summary>
-	/// Callback for a newly exploded projectile.
-	/// </summary>
-	
-	void shotCompleted(Projectile projectile)
-	{
-		shotsCompleted++;
+		Debug.Log("Game Loaded");
 	}
 	
 	

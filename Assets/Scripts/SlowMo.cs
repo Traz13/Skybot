@@ -3,8 +3,31 @@ using System.Collections;
 
 public class SlowMo : StaticInstance<SlowMo>
 {		
+	public delegate void DidStart(SlowMo slowmo);
+	public event DidStart didStart;
+	
+	public delegate void DidStop(SlowMo slowmo);
+	public event DidStop didStop;
+	
 	public bool armed = true;
-	public bool on = false;
+	bool mOn = false;
+	public bool on {
+		get { return mOn; }
+		set { 
+			if( !mOn && value )
+			{
+				if( didStart != null )
+					didStart(this);
+			}
+			else if( mOn && !value )
+			{
+				if( didStop != null )
+					didStop(this);
+			}
+			
+			mOn = value;
+		}
+	}
 	public float timer = 0f;
 	public float duration = 0.2f;
 	

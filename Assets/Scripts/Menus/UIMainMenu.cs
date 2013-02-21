@@ -1,8 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class UIMainMenu : MonoBehaviour
+public class UIMainMenu : UIMenu
 {
+#region 	VARIABLES
+	
 	public UILabel titleLabel;
 	public UIJglButton startButton;
 	
@@ -11,14 +13,27 @@ public class UIMainMenu : MonoBehaviour
 	Color[] titleColors = new Color[] { new Color(1f, 0f, 0f), new Color(1f, 1f, 0f), new Color(0f, 1f, 0f),
 									    new Color(0f, 1f, 1f), new Color(0f, 0f, 1f), new Color(1f, 0f, 1f) };
 	
+#endregion
+#region 	UNITY_HOOKS
+	
+	
+	/// <summary>
+	/// Awake this instance.
+	/// </summary>
+	
 	void Awake()
 	{
 		startButton.didPress += startButtonDidPress;
 	}
 	
 	
-	void Update()
+	/// <summary>
+	/// Update this instance.
+	/// </summary>
+	
+	protected override void Update()
 	{		
+		// Shift the color of the title gradually over time through our palette.
 		int nextIndex = titleColorIndex + 1;
 		if( nextIndex >= titleColors.Length )
 			nextIndex = 0;
@@ -36,46 +51,67 @@ public class UIMainMenu : MonoBehaviour
 	}
 	
 	
+	void OnLevelWasLoaded()
+	{
+		moveToGameAndBegin();
+	}
+	
+	
+#endregion
+#region 	METHODS
+	
+	
+	/// <summary>
+	/// Callback for start button didPress event.
+	/// </summary>
+	
 	void startButtonDidPress(UIJglButton button)
 	{
 		if( button.isDown )
 			return;
 		
-		Application.LoadLevel(1);
-		
-		Game.didLoad += delegate {
-			StartCoroutine(moveToGameAndBegin());
-		};
-		
-		//gameObject.SetActive(false);
+		// TODO: Make this more dynamic.
+		Application.LoadLevel("Sandbox (lars)");
 	}
 	
 	
-	IEnumerator moveToGameAndBegin()
+	/// <summary>
+	/// Animate the camera away from the menus into the game area, and begin the game.
+	/// </summary>
+	
+	void moveToGameAndBegin()
 	{
-		// Pan the camera down to the playing area.
+		// Pan the camera back from the menu and down toward the playing area.
 		Vector3[] path = new Vector3[3];
 		path[0] = Camera.main.transform.position;
-		path[1] = new Vector3(path[0].x, path[0].y-10, Game.Instance.mainCamera.transform.position.z);
-		path[2] = Game.Instance.mainCamera.transform.position;
+		path[1] = new Vector3(path[0].x, path[0].y-10, Game.Instance.rules.cameraTransform.position.z);
+		path[2] = Game.Instance.rules.cameraTransform.position;
 		
 		iTween.MoveTo(Camera.main.gameObject, iTween.Hash(
 			"path", path,
 			"easetype", iTween.EaseType.easeInOutSine,
-			"time", 2.5f
+			"time", 2.5f,
+			"oncomplete", "cameraMovedToGame",
+			"oncompletetarget", gameObject
 		));
 		
-		/*iTween.RotateTo(MainCamera.instance.gameObject, iTween.Hash(
-			"rotation", Game.instance.mainCamera.transform.rotation ,
+		iTween.RotateTo(Camera.main.gameObject, iTween.Hash(
+			"rotation", Game.Instance.rules.cameraTransform.eulerAngles,
 			"easetype", iTween.EaseType.easeInOutSine,
 			"time", 2.5f
-		));*/
-		
-		yield return new WaitForSeconds(2.5f);
-		
+		));
+	}
+	
+	
+	void cameraMovedToGame()
+	{
+		// Hide the main menu when we're finished animating.
 		gameObject.SetActive(false);
 		
-		Game.Instance.BeginGame();
+		Game.Instance.rules.BeginGame();
 	}
+	
+	
+#endregion
 }
 

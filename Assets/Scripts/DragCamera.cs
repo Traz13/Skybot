@@ -14,8 +14,13 @@ public class DragCamera : MonoBehaviour
 	
 	void Update()
 	{
-		if( Game.Instance == null || Game.Instance.currentPlayer == null || Game.Instance.currentPlayer.aiming )
-			return;
+		if( Game.Instance != null )
+		{
+			// Don't drag the camera if we're aiming.
+			Rules rules = Game.Instance.rules;
+			if( rules != null && rules.currentPlayer != null && rules.currentPlayer.aiming )
+				return;
+		}
 		
 		if( Input.GetMouseButton(0) )
 		{

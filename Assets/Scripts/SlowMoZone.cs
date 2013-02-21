@@ -12,8 +12,8 @@ public class SlowMoZone : MonoBehaviour
 		}
 		
 		// Only react to projectiles that aren't our own.
-		if( collider.gameObject == transform.parent.gameObject || 
-			collider.gameObject.GetComponent<Projectile>() == null )
+		Projectile projectile = collider.gameObject.GetComponent<Projectile>();
+		if( projectile == null || projectile.launcher.transform.parent == transform.parent )
 			return;
 
 		SlowMo.Instance.on = true;
@@ -27,8 +27,9 @@ public class SlowMoZone : MonoBehaviour
 			return;
 		}
 		
-		if( collider.gameObject == transform.parent.gameObject || 
-			collider.gameObject.GetComponent<Projectile>() == null )
+		// Only react to projectiles that aren't our own.
+		Projectile projectile = collider.gameObject.GetComponent<Projectile>();
+		if( projectile == null || projectile.launcher.transform.parent == transform.parent )
 			return;
 		
 		SlowMo.Instance.timer = SlowMo.Instance.duration;
