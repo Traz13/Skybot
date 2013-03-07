@@ -86,7 +86,9 @@ public class TurnBasedRules : Rules
 				{ "position", new Vector3(building.transform.localPosition.x, Random.Range(building.shiftMin, building.shiftMax), building.transform.localPosition.z) },
 				{ "easetype", "easeInOutSine" },
 				{ "time", 3f },
-				{ "islocal", true }
+				{ "islocal", true },
+				{ "oncomplete", "focusOnPlayer" },
+				{ "oncompletetarget", gameObject }
 			});
 		}
 		
@@ -97,6 +99,13 @@ public class TurnBasedRules : Rules
 		Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
 		if( launcher != null )
 			launcher.didFireProjectile += shotFired;
+	}
+	
+	
+	void focusOnPlayer()
+	{
+		CameraPosition.Instance.FocusOn(currentPlayer.gameObject, 2f);
+		CameraFov.Instance.AdjustTo(35f);
 	}
 	
 	

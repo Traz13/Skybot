@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
 	Vector3 aim;
 	float velocity = 0f;
 	LineRenderer lineRenderer;
+	GameObject trajectoryEndGO;
 	
 	
 #endregion
@@ -72,6 +73,9 @@ public class Player : MonoBehaviour
 		
 		// Set the material color
 		gameObject.renderer.material.color = color;
+		
+		trajectoryEndGO = new GameObject("TrajectoryEnd");
+		trajectoryEndGO.transform.parent = transform;
 	}
 	
 	
@@ -88,6 +92,16 @@ public class Player : MonoBehaviour
 			lineRenderer.SetVertexCount(trajectorySamples);
 			for( int i = 0; i < points.Length; i++ )
 				lineRenderer.SetPosition(i, points[i]);
+			
+			if( Game.Instance.rules.adjustCameraDuringAim )
+			{
+				trajectoryEndGO.transform.position = points[points.Length-1];
+				
+				ArrayList focusObjects = new ArrayList();
+				focusObjects.Add(gameObject);
+				focusObjects.Add(trajectoryEndGO);
+				CameraPosition.Instance.FocusOn(focusObjects, 2f);
+			}
 		}
 	}
 	
@@ -118,9 +132,14 @@ public class Player : MonoBehaviour
 		
 		Rules rules = Game.Instance.rules;
 		
+		float maxVelocity = (mode == PlayerMode.Fire) ? rules.maxFireVelocity : rules.maxMoveVelocity;
+		
 		aim = downPoint - Input.mousePosition;
-		velocity = Mathf.Min(0.5f * aim.magnitude, (mode == PlayerMode.Fire) ? rules.maxFireVelocity : rules.maxMoveVelocity);
+		velocity = Mathf.Min(0.5f * aim.magnitude, maxVelocity);
 		aim.Normalize();
+		
+		if( rules.adjustCameraDuringAim )
+			CameraFov.Instance.AdjustTo(Mathf.Lerp(35, 60, velocity / maxVelocity));
 	}
 	
 	
@@ -139,7 +158,14 @@ public class Player : MonoBehaviour
 		else
 		{
 			if( mode == PlayerMode.Fire )
-				launcher.FireProjectile(aim*velocity);
+			{
+				Projectile projectile = launcher.FireProjectile(aim*velocity);
+				if( Game.Instance.rules.adjustCameraDuringAim )
+				{
+					CameraPosition.Instance.FocusOn(projectile.gameObject, 10f);
+					CameraFov.Instance.AdjustTo(40f);
+				}
+			}
 			else if( mode == PlayerMode.Move )
 				rigidbody.velocity = aim*velocity;
 		}

@@ -31,6 +31,8 @@ public class Rules : MonoBehaviour
 	// Camera Transform
 	public Transform cameraTransform;
 	
+	public bool adjustCameraDuringAim;
+	
 #endregion
 #region METHODS
 	
@@ -109,6 +111,13 @@ public class Rules : MonoBehaviour
 		}
 		
 		playing = false;
+		
+		// Focus on the winning players.
+		ArrayList players = new ArrayList();
+		foreach( Player player in winners.Values )
+			players.Add(player.gameObject);
+		
+		CameraPosition.Instance.FocusOn(players, 5f);
 	}
 	
 	
