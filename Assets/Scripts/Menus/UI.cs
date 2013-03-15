@@ -11,6 +11,8 @@ public class UI : MonoBehaviour
 	public UIBeginGame beginGameOverlay;
 	public UIEndGame endGameOverlay;
 	
+	public UILabel phaseLabel;
+	
 #endregion
 	
 	void Awake()

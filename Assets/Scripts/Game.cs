@@ -16,7 +16,7 @@ public class Game : StaticInstance<Game>
 #region 	VARIABLES
 	
 	// Players
-	public ArrayList players;
+	public Player[] players;
 	
 	// Rules
 	public Rules rules;
@@ -51,26 +51,45 @@ public class Game : StaticInstance<Game>
 		if( willLoad != null )
 			willLoad(this);
 		
-		// Gather all the players.	
-		players = new ArrayList();
+		// Gather all the players.
 		Player[] playersInScene = GameObject.FindObjectsOfType(typeof(Player)) as Player[];
+		players = new Player[playersInScene.Length];
 		for( int i = 0; i < playersInScene.Length; i++ )
 		{
 			Player player = playersInScene[i];
-			player.playerIndex = i;
-			players.Add(player);
+			if( players[player.index] != null )
+			{
+				Debug.LogError(player.name + " index (" + player.index + ") is the same as " + players[player.index].name + "!");
+				
+				for( int j = i; j < playersInScene.Length; j++ )
+				{
+					if( players[j] == null )
+					{
+						player.index = j;
+						break;
+					}
+				}
+			}
+			
+			players[player.index] = player;
 		}
 		
-		// Look for game rules.
-		//if( rules != null )
-		//	Destroy(rules.gameObject);
-		
+		// Get our rules, or create defaults if we find none.
 		rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
 		if( rules == null )
 		{
 			Debug.LogWarning("No rules found! Creating defaults...");
+			
 			GameObject rulesObject = new GameObject("DefaultRules");
 			rules = rulesObject.AddComponent<Rules>();
+			
+			BoxCollider rulesCollider = rules.gameObject.AddComponent<BoxCollider>();
+			rulesCollider.center = new Vector3(0, 0, 0);
+			rulesCollider.size = new Vector3(500, 250, 500);
+			rulesCollider.isTrigger = true;
+			
+			foreach( Player player in players )
+				player.shotsRemaining = 9999;
 		}
 		
 		// Send event.

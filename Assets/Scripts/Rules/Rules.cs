@@ -31,8 +31,6 @@ public class Rules : MonoBehaviour
 	// Camera Transform
 	public Transform cameraTransform;
 	
-	public bool adjustCameraDuringAim;
-	
 #endregion
 #region METHODS
 	
@@ -45,7 +43,7 @@ public class Rules : MonoBehaviour
 	{		
 		Debug.Log("Begin Game!");
 		
-		if( Game.Instance.players.Count == 0 )
+		if( Game.Instance.players.Length == 0 )
 			throw new System.Exception("Must have at least one Player!");
 		
 		if( willBeginGame != null )
@@ -117,7 +115,7 @@ public class Rules : MonoBehaviour
 		foreach( Player player in winners.Values )
 			players.Add(player.gameObject);
 		
-		CameraPosition.Instance.FocusOn(players, 5f);
+		CameraPosition.Instance.Follow(players, 5f);
 	}
 	
 	
@@ -160,7 +158,7 @@ public class Rules : MonoBehaviour
 	/// Focuses the main camera on the current player.
 	/// </summary>
 	
-	public virtual void FocusOnCurrentPlayer()
+	public virtual void FollowCurrentPlayer()
 	{
 		// Animate the camera to the player's x,y
 		/*Vector3 playerPos = GetCurrentPlayer().transform.position;

@@ -19,11 +19,12 @@ public class TurnBasedRules : Rules
 	
 	// Current Round
 	protected int currentRound = 0;
+	public int shotsCompleted = 0;
 	
-	// Action Points
-	public int actionsPerTurn = 3;
-	public int actionsRemaining = 0;
-	public int actionsCompleted = 0;
+	public int shotsPerTurn = 1;
+	
+	public bool endTurnNow = false;
+	bool endingTurn = false;
 	
 #endregion
 #region UNITY_HOOKS
@@ -40,11 +41,8 @@ public class TurnBasedRules : Rules
 			// Check if we should end the game, or the turn.
 			if( IsGameOver() )
 				EndGame();
-			else if( IsTurnOver() )
-			{
-				EndTurn();
-				BeginTurn();
-			}
+			else if( !endingTurn && IsTurnOver() )
+				StartCoroutine(endTurn_delay());
 		}
 	}
 	
@@ -64,6 +62,15 @@ public class TurnBasedRules : Rules
 		BeginTurn();
 	}
 	
+	
+	protected override void EndGame()
+	{
+		base.EndGame();
+		
+		if( UI.Instance != null )
+			UI.Instance.phaseLabel.gameObject.SetActive(false);
+	}
+	
 
 	/// <summary>
 	/// Begin the next turn.
@@ -76,36 +83,41 @@ public class TurnBasedRules : Rules
 		if( willBeginTurn != null )
 			willBeginTurn(this);
 		
-		// Shift the buildings.
-		foreach( Player player in Game.Instance.players )
-			player.rigidbody.WakeUp();
-		
-		foreach( Building building in GameObject.FindObjectsOfType(typeof(Building)) )
-		{
-			iTween.MoveTo(building.gameObject, new Hashtable() {
-				{ "position", new Vector3(building.transform.localPosition.x, Random.Range(building.shiftMin, building.shiftMax), building.transform.localPosition.z) },
-				{ "easetype", "easeInOutSine" },
-				{ "time", 3f },
-				{ "islocal", true },
-				{ "oncomplete", "focusOnPlayer" },
-				{ "oncompletetarget", gameObject }
-			});
-		}
-		
 		// Reset action points, and listen for actions.
-		actionsRemaining = actionsPerTurn;
-		actionsCompleted = 0;
+		currentPlayer.shotsRemaining = shotsPerTurn;
+		shotsCompleted = 0;
+		
+		currentPlayer.RefillFuel();
 		
 		Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
 		if( launcher != null )
 			launcher.didFireProjectile += shotFired;
+		
+		focusOnPlayer(currentPlayer);
+		
+		if( UI.Instance != null )
+		{
+			UI.Instance.phaseLabel.gameObject.SetActive(true);
+			UI.Instance.phaseLabel.text = "[FF0000]Attack[-]";
+		}
 	}
 	
 	
-	void focusOnPlayer()
+	void focusOnPlayer(Player player)
 	{
-		CameraPosition.Instance.FocusOn(currentPlayer.gameObject, 2f);
-		CameraFov.Instance.AdjustTo(35f);
+		CameraPosition.Instance.Follow(player.gameObject, 2f);
+		CameraFov.Instance.AdjustTo(60f);
+	}
+	
+	
+	IEnumerator endTurn_delay()
+	{
+		endTurnNow = false;
+		endingTurn = true;
+		
+		yield return new WaitForSeconds(1f);
+		
+		EndTurn();
 	}
 	
 	
@@ -117,12 +129,6 @@ public class TurnBasedRules : Rules
 	{
 		Debug.Log("End Turn");
 		
-		if( !IsTurnOver() )
-		{
-			Debug.LogWarning("Trying to end turn prematurely!");
-			return;
-		}
-		
 		if( willEndTurn != null )
 			willEndTurn(this);
 		
@@ -132,14 +138,34 @@ public class TurnBasedRules : Rules
 			launcher.didFireProjectile -= shotFired;
 		
 		// Advance to the next player, as well as the round if we're on the last player.		
-		int nextPlayerIndex = currentPlayer.playerIndex + 1;
-		if( nextPlayerIndex >= Game.Instance.players.Count )
+		int nextPlayerIndex = currentPlayer.index + 1;
+		if( nextPlayerIndex >= Game.Instance.players.Length )
 		{
 			currentRound++;
 			nextPlayerIndex = 0;
+			
+			// Shift the buildings.
+			foreach( Player player in Game.Instance.players )
+				player.rigidbody.WakeUp();
+			
+			foreach( Building building in GameObject.FindObjectsOfType(typeof(Building)) )
+			{
+				iTween.MoveTo(building.gameObject, new Hashtable() {
+					{ "position", new Vector3(building.transform.localPosition.x, Random.Range(building.shiftMin, building.shiftMax), building.transform.localPosition.z) },
+					{ "easetype", "easeInOutSine" },
+					{ "time", 3f },
+					{ "islocal", true },
+					//{ "oncomplete", "focusOnPlayer" },
+					//{ "oncompletetarget", gameObject }
+				});
+			}
 		}
 		
 		currentPlayer = Game.Instance.players[nextPlayerIndex] as Player;
+		
+		BeginTurn();
+		
+		endingTurn = false;
 	}
 	
 	
@@ -149,8 +175,11 @@ public class TurnBasedRules : Rules
 	
 	protected virtual bool IsTurnOver()	
 	{
+		if( endTurnNow )
+			return true;
+		
 		// End the turn when the current player has finished all their actions.
-		return( actionsCompleted >= actionsPerTurn );
+		return( shotsCompleted >= shotsPerTurn && currentPlayer.fuel <= 0 );
 	}
 	
 	
@@ -171,8 +200,11 @@ public class TurnBasedRules : Rules
 	
 	public override bool AllowUserAction(GameObject go)
 	{
-		// Only allow the current player to perform actions (if we have action points).
-		return( go == currentPlayer.gameObject && actionsRemaining > 0 );
+		if( currentPlayer == null )
+			return false;
+		
+		// Only allow the current player to perform actions if we have action points.
+		return( go.gameObject == currentPlayer.gameObject );
 	}
 	
 	
@@ -181,13 +213,7 @@ public class TurnBasedRules : Rules
 	/// </summary>
 	
 	void shotFired(Launcher launcher, Projectile projectile)
-	{
-		// Log every action
-		actionsRemaining--;
-		
-		if( actionsRemaining < 0 )
-			Debug.LogWarning("Not enough action points left!");
-		
+	{		
 		if( projectile.exploder != null )
 			projectile.exploder.didExplode += projectileDidExplode;
 	}
@@ -199,10 +225,29 @@ public class TurnBasedRules : Rules
 	
 	void projectileDidExplode(Exploder exploder)
 	{		
-		actionsCompleted++;
+		shotsCompleted++;
+		
+		if( SlowMo.Instance.on )
+		{
+			SlowMo.Instance.didStop += delegate {
+				StartCoroutine(startMovePhase());
+			};
+		}
+		else
+			StartCoroutine(startMovePhase());
 		
 		// Make sure we only get notified once for each projectile.
 		exploder.didExplode -= projectileDidExplode;
+	}
+	
+	
+	IEnumerator startMovePhase()
+	{
+		yield return new WaitForSeconds(1f);
+		focusOnPlayer(currentPlayer);
+		
+		if( UI.Instance != null )
+			UI.Instance.phaseLabel.text = "[0000FF]Move[-]";
 	}
 	
 	

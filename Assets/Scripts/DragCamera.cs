@@ -10,7 +10,7 @@ using System.Collections;
 
 public class DragCamera : MonoBehaviour
 {
-	public Vector2 speed = new Vector2(4f, 4f);
+	public Vector2 speed = new Vector2(1f, 1f);
 	
 	void Update()
 	{

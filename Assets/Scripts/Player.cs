@@ -8,16 +8,13 @@ public class Player : MonoBehaviour
 		Move,
 		Fire,
 	}
+
 	
 #region 	VARIABLES
 	
 	
 	// Player Index
-	int mPlayerIndex = 0;
-	public int playerIndex {
-		get { return mPlayerIndex; }
-		set { mPlayerIndex = value; }
-	}
+	public int index = 0;
 	
 	// Score
 	public int score = 0;
@@ -35,6 +32,17 @@ public class Player : MonoBehaviour
 	// Launcher
 	public Launcher launcher;
 	
+	// Jetpack
+	public float fuel = 0f;
+	float fuelCapacity = 1f;
+	
+	
+	// Shots
+	public int shotsRemaining = 0;
+	
+	// Headshot Collider
+	public Collider headshotCollider;
+	
 	// Aiming Stuff
 	public bool aiming = false;	
 	public int trajectorySamples = 50;
@@ -42,7 +50,6 @@ public class Player : MonoBehaviour
 	Vector3 aim;
 	float velocity = 0f;
 	LineRenderer lineRenderer;
-	GameObject trajectoryEndGO;
 	
 	
 #endregion
@@ -73,9 +80,6 @@ public class Player : MonoBehaviour
 		
 		// Set the material color
 		gameObject.renderer.material.color = color;
-		
-		trajectoryEndGO = new GameObject("TrajectoryEnd");
-		trajectoryEndGO.transform.parent = transform;
 	}
 	
 	
@@ -85,6 +89,7 @@ public class Player : MonoBehaviour
 	
 	void Update()
 	{
+		// Show aim trajectory.
 		if( aiming )
 		{
 			Vector3[] points = Trajectory.PredictPositions(transform.position, aim, velocity, trajectorySamples, Time.fixedDeltaTime/Time.timeScale);
@@ -92,17 +97,36 @@ public class Player : MonoBehaviour
 			lineRenderer.SetVertexCount(trajectorySamples);
 			for( int i = 0; i < points.Length; i++ )
 				lineRenderer.SetPosition(i, points[i]);
-			
-			if( Game.Instance.rules.adjustCameraDuringAim )
-			{
-				trajectoryEndGO.transform.position = points[points.Length-1];
-				
-				ArrayList focusObjects = new ArrayList();
-				focusObjects.Add(gameObject);
-				focusObjects.Add(trajectoryEndGO);
-				CameraPosition.Instance.FocusOn(focusObjects, 2f);
-			}
 		}
+		
+		// Movement
+		Vector3 thrust = Vector3.zero;
+		if( Game.Instance.rules.AllowUserAction(gameObject) && shotsRemaining <= 0 && fuel > 0 )
+		{
+			if( Input.GetKey(KeyCode.W) )
+				thrust.y += 3000f * Time.deltaTime;
+			if( Input.GetKey(KeyCode.A) )
+				thrust.x -= 500f * Time.deltaTime;
+			if( Input.GetKey(KeyCode.D) )
+				thrust.x += 500f * Time.deltaTime;
+			
+			fuel -= (Mathf.Abs(thrust.x) + Mathf.Abs(thrust.y)) * 0.00005f;
+			
+			rigidbody.AddForce(thrust);
+		}
+		
+		LightFlash lightFlash = GetComponent<LightFlash>();
+		if( lightFlash != null )
+		{
+			light.enabled = (thrust.y > 0);
+			
+			float fuelSpentRatio = (fuelCapacity - fuel) / fuelCapacity;
+			light.color = new Color(1f-fuelSpentRatio/2, 1f-fuelSpentRatio, 1f-fuelSpentRatio);
+			lightFlash.On = light.enabled;
+			if( !light.enabled )
+				lightFlash.ResetTimer();
+		}
+			
 	}
 	
 	
@@ -113,7 +137,7 @@ public class Player : MonoBehaviour
 	void OnMouseDown()
 	{
 		// Only allow the current player to aim.
-		if( !Game.Instance.rules.AllowUserAction(gameObject) )
+		if( shotsRemaining <= 0 || !Game.Instance.rules.AllowUserAction(gameObject) )
 			return;
 		
 		aiming = true;
@@ -137,9 +161,6 @@ public class Player : MonoBehaviour
 		aim = downPoint - Input.mousePosition;
 		velocity = Mathf.Min(0.5f * aim.magnitude, maxVelocity);
 		aim.Normalize();
-		
-		if( rules.adjustCameraDuringAim )
-			CameraFov.Instance.AdjustTo(Mathf.Lerp(35, 60, velocity / maxVelocity));
 	}
 	
 	
@@ -152,27 +173,27 @@ public class Player : MonoBehaviour
 		if( !aiming )
 			return;
 		
-		// If there's little or no velocity, count it as a tap and switch modes.
+		// If there's little or no velocity, don't do anything.
 		if( velocity < 0.001f )
-			mode = (mode == PlayerMode.Fire) ? PlayerMode.Move : PlayerMode.Fire;
+			return;
 		else
 		{
-			if( mode == PlayerMode.Fire )
+			if( launcher != null )
 			{
 				Projectile projectile = launcher.FireProjectile(aim*velocity);
-				if( Game.Instance.rules.adjustCameraDuringAim )
-				{
-					CameraPosition.Instance.FocusOn(projectile.gameObject, 10f);
-					CameraFov.Instance.AdjustTo(40f);
-				}
+				CameraPosition.Instance.Follow(projectile.gameObject, 10f);
 			}
-			else if( mode == PlayerMode.Move )
-				rigidbody.velocity = aim*velocity;
+			else
+			{
+				Debug.LogError("No Launcher found in " + name);
+				return;
+			}
 		}
 		
 		aiming = false;
 		aim = Vector3.zero;
 		velocity = 0f;
+		shotsRemaining--;
 		
 		// Clear trajectory lines.
 		for( int i = 0; i < trajectorySamples; i++ )
@@ -180,8 +201,50 @@ public class Player : MonoBehaviour
 	}
 	
 	
+	/// <summary>
+	/// Collision enter event.
+	/// </summary>
+	
+	void OnCollisionEnter(Collision collision)
+	{
+		if( collision.gameObject.GetComponent<Projectile>() )
+		{
+			foreach( ContactPoint contact in collision.contacts )
+			{
+				if( contact.thisCollider == headshotCollider )
+				{
+					Damageable damageable = GetComponent<Damageable>();
+					if( damageable != null )
+						damageable.TakeDamage(100, collision);
+					
+					Debug.Log("HEADSHOT!!!");
+					break;
+				}
+				else
+				{
+					Damageable damageable = GetComponent<Damageable>();
+					if( damageable != null )
+						damageable.TakeDamage(50, collision);
+					
+					break;
+				}
+			}
+		}
+	}
+	
+	
 #endregion
 #region 	METHODS
+	
+	
+	/// <summary>
+	/// Refills the fuel.
+	/// </summary>
+	
+	public void RefillFuel()
+	{
+		fuel = fuelCapacity;
+	}
 	
 	
 	/// <summary>
@@ -197,7 +260,8 @@ public class Player : MonoBehaviour
 		
 		// Make sure the force gets to the rigidbody correctly now that 
 		// we've removed our constraints.
-		rigidbody.AddForce(damageable.lastCollision.relativeVelocity);
+		if( damageable.lastCollision != null )
+			rigidbody.AddForce(damageable.lastCollision.relativeVelocity);
 	}
 	
 	
