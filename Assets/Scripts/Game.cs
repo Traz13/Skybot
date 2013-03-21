@@ -21,6 +21,9 @@ public class Game : StaticInstance<Game>
 	// Rules
 	public Rules rules;
 	
+	// Building Creator - need a reference to the prefab
+	public BuildingFactory buildingFactory = null;
+	
 #endregion
 #region UNITY_HOOKS
 	
@@ -78,6 +81,11 @@ public class Game : StaticInstance<Game>
 			didLoad(this);
 		
 		Debug.Log("Game Loaded");
+	}
+	
+	void Reset() {
+		if(buildingFactory == null)
+			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
 	}
 	
 	
