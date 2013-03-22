@@ -43,7 +43,7 @@ public class BuildingBlock : MonoBehaviour
 		mDestroyed = true;
 		renderer.material = destroyedMat;
 		
-		GameObject explosion = BuildingFactory.Instance.CreateBlockExplosion(building.theme);
+		GameObject explosion = Game.Instance.buildingFactory.CreateBlockExplosion(building.theme);
 		explosion.transform.position = transform.position;
 		//GameObject.Instantiate(explosion, transform.position, Quaternion.identity);
 		
