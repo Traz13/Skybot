@@ -13,6 +13,7 @@ public class Projectile : MonoBehaviour
 	
 	public Exploder exploder;
 	
+	
 #region CONSTRUCTORS
 	
 	
@@ -32,8 +33,12 @@ public class Projectile : MonoBehaviour
 		if( projectile.exploder == null )
 			projectile.exploder = projectile.GetComponent<Exploder>();
 		
-		// Make sure not to collide with the launcher's owner.
-		Physics.IgnoreCollision(launcher.transform.parent.collider, projectile.collider);
+		// Make sure not to collide with the launcher's owner, or any of its children.
+		foreach( Collider collider in launcher.transform.parent.GetComponentsInChildren<Collider>() )
+		{
+			if( collider.enabled && collider.gameObject.activeSelf )
+				Physics.IgnoreCollision(collider, projectile.collider);
+		}
 		
 		return projectile;
 	}
@@ -54,7 +59,7 @@ public class Projectile : MonoBehaviour
 	
 #endregion
 #region UNITY_HOOKS
-	
+
 	
 	/// <summary>
 	/// Start this instance.

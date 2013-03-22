@@ -36,10 +36,6 @@ public class CameraPosition : StaticInstance<CameraPosition>
 			return;
 		}			
 		
-		int blah = 0;
-		if( Input.GetKeyDown(KeyCode.Space) )
-			blah = 1;
-		
 		// Find the points farthest up/right and down/left in screen space.
 		Bounds focusBoundsInWorld;
 		if( focusObjects[0].renderer != null )
@@ -62,58 +58,14 @@ public class CameraPosition : StaticInstance<CameraPosition>
 		Vector3 targetPosition = new Vector3(focusBoundsInWorld.center.x, focusBoundsInWorld.center.y+height, Camera.main.transform.position.z);
 		Vector3 positionDiff = targetPosition - Camera.main.transform.position;
 		Camera.main.transform.position += positionDiff * Time.deltaTime * speed;
-		
-		/*Vector3 focusCenterInScreen = Camera.main.WorldToScreenPoint(focusBoundsInWorld.center);
-		Vector3 focusMaxInScreen = Camera.main.WorldToScreenPoint(new Vector3(focusBoundsInWorld.center.x + focusBoundsInWorld.size.x/2,
-																	 		     focusBoundsInWorld.center.y + focusBoundsInWorld.size.y/2,
-																			     0));
-		Vector3 focusMinInScreen = Camera.main.WorldToScreenPoint(new Vector3(focusBoundsInWorld.center.x - focusBoundsInWorld.size.x/2,
-																	 		     focusBoundsInWorld.center.y - focusBoundsInWorld.size.y/2,
-																			     0));
-		Vector3 focusSizeInScreen = focusMaxInScreen - focusMinInScreen;
-		
-		Bounds focusBoundsInScreen = new Bounds(focusCenterInScreen, focusSizeInScreen);*/
-		
-		// Define our virtual camera edge a little smaller than the real
-		// one to keep everything well within bounds.
-		/*Vector3 cameraMax = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width-50, Screen.height-50, 0));
-		
-		// Find the difference between the virtual camera edges and
-		// the focus bounds, which will serve as our weight to zoom by.
-		Vector3 diff = focusBoundsInWorld.max - cameraMax;
-		float zoomWeight = diff.magnitude;
-		
-		// Adjust the FOV to try bringing all of the points into frame.
-		Camera.main.fov += zoomWeight * 0.1f;*/
 	}
 	
 	
-	/*public void FocusOn(Vector3 point, float focusSpeed, float focusHeight)
-	{
-		GameObject oldFocusPoint = GameObject.Find("CameraPosition->FocusPoint");
-		if( oldFocusPoint )
-			Destroy(oldFocusPoint);
-		
-		GameObject focusObject = new GameObject("CameraPosition->FocusPoint");
-		focusObject.transform.position = point;
-		
-		FocusOn(focusObject, focusSpeed, focusHeight);
-	}
+	/// <summary>
+	/// Follow the specified components' game objects.
+	/// </summary>
 	
-	
-	public void FocusOn(Vector3 point, float focusSpeed)
-	{
-		FocusOn(point, focusSpeed, defaultHeight);
-	}
-	
-	
-	public void FocusOn(Vector3 point)
-	{
-		FocusOn(point, defaultSpeed, defaultHeight);
-	}*/
-	
-	
-	public void FocusOn(Component[] components, float focusSpeed, float focusHeight)
+	public void Follow(Component[] components, float focusSpeed, float focusHeight)
 	{
 		ArrayList gameObjects = new ArrayList();
 		foreach( Component com in components )
@@ -122,19 +74,19 @@ public class CameraPosition : StaticInstance<CameraPosition>
 				gameObjects.Add(com.gameObject);
 		}
 		
-		FocusOn(gameObjects, focusSpeed, focusHeight);
+		Follow(gameObjects, focusSpeed, focusHeight);
 	}
 	
 	
-	public void FocusOn(Component[] components, float focusSpeed)
+	public void Follow(Component[] components, float focusSpeed)
 	{
-		FocusOn(components, focusSpeed, defaultHeight);
+		Follow(components, focusSpeed, defaultHeight);
 	}
 	
 	
-	public void FocusOn(Component[] components)
+	public void Follow(Component[] components)
 	{
-		FocusOn(components, defaultSpeed, defaultHeight);
+		Follow(components, defaultSpeed, defaultHeight);
 	}
 	
 	
@@ -142,7 +94,7 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	/// Focuses on the game objects.
 	/// </summary>
 	
-	public void FocusOn(GameObject[] gameObjects, float focusSpeed, float focusHeight)
+	public void Follow(GameObject[] gameObjects, float focusSpeed, float focusHeight)
 	{		
 		focusObjects = gameObjects;
 		speed = focusSpeed;
@@ -150,15 +102,15 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	}
 	
 	
-	public void FocusOn(GameObject[] gameObjects, float focusSpeed)
+	public void Follow(GameObject[] gameObjects, float focusSpeed)
 	{
-		FocusOn(gameObjects, focusSpeed, defaultHeight);
+		Follow(gameObjects, focusSpeed, defaultHeight);
 	}
 	
 	
-	public void FocusOn(GameObject[] gameObjects)
+	public void Follow(GameObject[] gameObjects)
 	{
-		FocusOn(gameObjects, defaultSpeed, defaultHeight);
+		Follow(gameObjects, defaultSpeed, defaultHeight);
 	}
 	
 	
@@ -166,21 +118,21 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	/// Focuses on the game objects.
 	/// </summary>
 	
-	public void FocusOn(ArrayList gameObjects, float focusSpeed, float focusHeight)
+	public void Follow(ArrayList gameObjects, float focusSpeed, float focusHeight)
 	{
-		FocusOn(gameObjects.ToArray(typeof(GameObject)) as GameObject[], focusSpeed, focusHeight);
+		Follow(gameObjects.ToArray(typeof(GameObject)) as GameObject[], focusSpeed, focusHeight);
 	}
 	
 	
-	public void FocusOn(ArrayList gameObjects, float focusSpeed)
+	public void Follow(ArrayList gameObjects, float focusSpeed)
 	{
-		FocusOn(gameObjects.ToArray(typeof(GameObject)) as GameObject[], focusSpeed, defaultHeight);
+		Follow(gameObjects.ToArray(typeof(GameObject)) as GameObject[], focusSpeed, defaultHeight);
 	}
 	
 	
-	public void FocusOn(ArrayList gameObjects)
+	public void Follow(ArrayList gameObjects)
 	{
-		FocusOn(gameObjects.ToArray(typeof(GameObject)) as GameObject[], defaultSpeed, defaultHeight);
+		Follow(gameObjects.ToArray(typeof(GameObject)) as GameObject[], defaultSpeed, defaultHeight);
 	}
 	
 	
@@ -188,21 +140,21 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	/// Focuses on the game object.
 	/// </summary>
 	
-	public void FocusOn(GameObject go, float focusSpeed, float focusHeight)
+	public void Follow(GameObject go, float focusSpeed, float focusHeight)
 	{
-		FocusOn(new GameObject[]{ go }, focusSpeed, focusHeight);
+		Follow(new GameObject[]{ go }, focusSpeed, focusHeight);
 	}
 	
 	
-	public void FocusOn(GameObject go, float focusSpeed)
+	public void Follow(GameObject go, float focusSpeed)
 	{
-		FocusOn(new GameObject[]{ go }, focusSpeed, defaultHeight);
+		Follow(new GameObject[]{ go }, focusSpeed, defaultHeight);
 	}
 	
 	
-	public void FocusOn(GameObject go)
+	public void Follow(GameObject go)
 	{
-		FocusOn(new GameObject[]{ go }, defaultSpeed, defaultHeight);
+		Follow(new GameObject[]{ go }, defaultSpeed, defaultHeight);
 	}
 	
 	
