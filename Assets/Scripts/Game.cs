@@ -78,7 +78,7 @@ public class Game : StaticInstance<Game>
 		}
 		
 		// Get our rules, or create defaults if we find none.
-		rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
+		//rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
 		if( rules == null )
 		{
 			Debug.LogWarning("No rules found! Creating defaults...");
