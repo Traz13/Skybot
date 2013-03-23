@@ -3,11 +3,12 @@ using System.Collections;
 
 public class BuildingBlock : MonoBehaviour 
 {		
-	float mHealth = 100f;
-	Building building = null;
-	public Material destroyedMat;
-	private bool mDestroyed = false;
-	public bool isDestroyed() { return mDestroyed; }
+	float mHealth 					= 100f;
+	Building building 				= null;
+	public Collectable collectable 	= null;
+	public Material destroyedMat	= null;
+	private bool mDestroyed 		= false;
+	public bool isDestroyed() 		{ return mDestroyed; }
 	
 	
 	void Start() {
@@ -43,26 +44,34 @@ public class BuildingBlock : MonoBehaviour
 		mDestroyed = true;
 		renderer.material = destroyedMat;
 		
-		GameObject explosion = BuildingFactory.Instance.CreateBlockExplosion(building.theme);
+		GameObject explosion = Game.Instance.buildingFactory.CreateBlockExplosion(building.theme);
 		explosion.transform.position = transform.position;
 		//GameObject.Instantiate(explosion, transform.position, Quaternion.identity);
 		
 		// Check for floor destruction
+		int numDestroyed = 1;
 		for(int i =  0; i < transform.parent.childCount; i++) {
 			Transform child = transform.parent.GetChild(i);
 			if(child == transform)
 				continue;
 			
 			if(!child.GetComponent<BuildingBlock>().isDestroyed())
-				break;
+				continue;
+			
+			numDestroyed++;
+			/*	break;
 				
 			if(i == transform.parent.childCount-1) {
 				//Building building = NGUITools.FindInParents<Building>(gameObject);
 				
 				//	TODO floor explosion
-				//building.DestroyFloor(transform.parent.gameObject);
-			}
+				building.DestroyFloor(transform.parent.gameObject);
+			}*/
 		}
+		
+		float fVal = ((float)numDestroyed/(float)transform.parent.childCount);
+		if(fVal >= 0.5f)
+			StartCoroutine(building.DestroyFloor(transform.parent.gameObject));
 	}
 	
 	

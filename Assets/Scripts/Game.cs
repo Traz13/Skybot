@@ -97,6 +97,10 @@ public class Game : StaticInstance<Game>
 					player.shotsRemaining = 9999;
 			}
 		}
+		else
+		{
+			rules = Instantiate(rules) as Rules;
+		}
 		
 		// Send event.
 		if( didLoad != null )

@@ -12,16 +12,22 @@ public class BuildingFactory : StaticInstance<BuildingFactory> {
 	public GameObject CreateBlock(BuildingTheme theme, BlockType type, BuildingUse use) {
 		GameObject obj = themeFactories[(int)theme].CreateBlock(type, use);
 		if(obj == null)
-			return defaultBlock;
+			return Instantiate(defaultBlock) as GameObject;
 		return obj;
 	}
 	
 	public GameObject CreateFloorExplosion(BuildingTheme theme) {
-		return themeFactories[(int)theme].CreatFloorExplosion();
+		GameObject obj = themeFactories[(int)theme].CreatFloorExplosion();
+		if(obj == null)
+			return Instantiate(defaultFloorExplosion) as GameObject;
+		return obj;
 	}
 	
 	public GameObject CreateBlockExplosion(BuildingTheme theme) {
-		return themeFactories[(int)theme].CreatBlockExplosion();
+		GameObject obj = themeFactories[(int)theme].CreatBlockExplosion();
+		if(obj == null)
+			return Instantiate(defaultBlockExplosion) as GameObject;
+		return obj;
 	}
 	
 	//public BlockByTheme[] byTheme = new BlockByTheme[(int)BuildingTheme.Count];

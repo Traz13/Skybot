@@ -91,6 +91,22 @@ public class Building : MonoBehaviour
 		}
 	}
 	
+	public IEnumerator DestroyFloor(GameObject floor) 
+	{
+		yield return new WaitForSeconds(0.5f);
+
+		GameObject explosion = Game.Instance.buildingFactory.CreateFloorExplosion(theme);
+		explosion.transform.position = floor.transform.position;
+		
+		foreach(Transform trans in floor.transform)
+		{
+			Destroy(trans.gameObject);
+		}
+		Destroy (floor);
+		
+		yield return null;
+	}
+	
 	
 #endregion
 }
