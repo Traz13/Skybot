@@ -78,21 +78,24 @@ public class Game : StaticInstance<Game>
 		}
 		
 		// Get our rules, or create defaults if we find none.
-		rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
 		if( rules == null )
 		{
-			Debug.LogWarning("No rules found! Creating defaults...");
+			rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
+			if( rules == null )
+			{
+				Debug.LogWarning("No rules found! Creating defaults...");
 			
-			GameObject rulesObject = new GameObject("DefaultRules");
-			rules = rulesObject.AddComponent<Rules>();
-			
-			BoxCollider rulesCollider = rules.gameObject.AddComponent<BoxCollider>();
-			rulesCollider.center = new Vector3(0, 0, 0);
-			rulesCollider.size = new Vector3(500, 250, 500);
-			rulesCollider.isTrigger = true;
-			
-			foreach( Player player in players )
-				player.shotsRemaining = 9999;
+				GameObject rulesObject = new GameObject("DefaultRules");
+				rules = rulesObject.AddComponent<Rules>();
+				
+				BoxCollider rulesCollider = rules.gameObject.AddComponent<BoxCollider>();
+				rulesCollider.center = new Vector3(0, 0, 0);
+				rulesCollider.size = new Vector3(500, 250, 500);
+				rulesCollider.isTrigger = true;
+				
+				foreach( Player player in players )
+					player.shotsRemaining = 9999;
+			}
 		}
 		
 		// Send event.

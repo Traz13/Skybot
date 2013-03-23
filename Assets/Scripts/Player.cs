@@ -63,9 +63,9 @@ public class Player : MonoBehaviour
 	void Awake()
 	{
 		// HACK: Make sure the game is initialized.
-		Game game = Game.Instance;
-		if( game == null )
-			throw new System.Exception("Game doesn't exist");
+		//Game game = Game.Instance;
+		//if( game == null )
+		//	throw new System.Exception("Game doesn't exist");
 		
 		// Line Renderer
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
