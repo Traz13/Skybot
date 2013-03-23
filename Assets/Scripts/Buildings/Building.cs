@@ -9,11 +9,11 @@ public class Building : MonoBehaviour
 	
 	public GameObject fullBlockPrefab;
 	
-	public Vector3 blockScale = new Vector3(2f, 2f, 2f);
+	public Vector3 blockScale = new Vector3(3f, 3f, 3f);
 	public float shiftMin = -3f;
 	public float shiftMax = 7f;
-	public int columns = 4;
-	public int rows = 10;
+	public int columns = 3;
+	public int rows = 7;
 	public bool regenerateNow = false;
 	
 	
@@ -56,6 +56,9 @@ public class Building : MonoBehaviour
 		if( !Application.isPlaying && transform.childCount > 0 )
 			return;
 		
+		foreach(Transform child in transform)
+			Destroy(child.gameObject);
+		
 		for( int i = 0; i < rows; i++ )
 		{
 			bool isBottom = (i == 0) ? true : false;
@@ -79,16 +82,26 @@ public class Building : MonoBehaviour
 				if(j == 0 || j == columns - 1) 
 				{
 					//	TODO EDGE
+					InitBlock(BlockType.Edge, isTop, isBottom, i, j, floor);
 				} else
 				{
-					GameObject newBlock = GameObject.Instantiate(fullBlockPrefab) as GameObject;
-					newBlock.name = "block" + j.ToString();
-					newBlock.transform.parent = floor.transform;
-					newBlock.transform.localScale = blockScale;
-					newBlock.transform.localPosition = new Vector3(j*blockScale.x, i*blockScale.y , 0f);
+					InitBlock(BlockType.Middle, isTop, isBottom, i, j, floor);
 				}
 			}
 		}
+	}
+					
+	private void InitBlock(BlockType bt, bool isTop, bool isBottom, int row, int column, GameObject floor)
+	{
+		BuildingFactory bf = Game.Instance.buildingFactory;
+		GameObject newBlock = bf.CreateBlock(theme, bt, use) as GameObject;
+		//GameObject newBlock = GameObject.Instantiate(fullBlockPrefab) as GameObject;
+		newBlock.name = "block" + column.ToString();
+		newBlock.transform.parent = floor.transform;
+		newBlock.transform.localScale = blockScale;
+		newBlock.transform.localPosition = new Vector3(column*blockScale.x, row*blockScale.y , 0f);
+		if(isBottom)
+			Destroy (newBlock.rigidbody);
 	}
 	
 	public IEnumerator DestroyFloor(GameObject floor) 

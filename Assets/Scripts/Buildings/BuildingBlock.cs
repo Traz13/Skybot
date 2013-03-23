@@ -7,6 +7,7 @@ public class BuildingBlock : MonoBehaviour
 	Building building 				= null;
 	public Collectable collectable 	= null;
 	public Material destroyedMat	= null;
+	private Material backupMat		= null;
 	private bool mDestroyed 		= false;
 	public bool isDestroyed() 		{ return mDestroyed; }
 	
@@ -38,11 +39,24 @@ public class BuildingBlock : MonoBehaviour
 		
 	}
 	
-	private IEnumerator ProjectilCollision(Collision coll) {
+	public void Repair()
+	{
+		if(mDestroyed == false)
+			return;
+		
+		renderer.material = backupMat;
+	}
+	
+	private IEnumerator ProjectilCollision(Collision coll)
+	{
 		yield return null;
 		
-		mDestroyed = true;
-		renderer.material = destroyedMat;
+		if(mDestroyed == false)
+		{
+			mDestroyed = true;
+			backupMat = renderer.material;
+			renderer.material = destroyedMat;
+		}
 		
 		GameObject explosion = Game.Instance.buildingFactory.CreateBlockExplosion(building.theme);
 		explosion.transform.position = transform.position;
