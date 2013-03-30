@@ -111,7 +111,13 @@ public class Game : StaticInstance<Game>
 	
 	void Reset() {
 		if(buildingFactory == null)
-			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
+			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactories/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
+	}
+	
+	void Start()
+	{
+		if(buildingFactory == null)
+			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactories/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
 	}
 	
 	

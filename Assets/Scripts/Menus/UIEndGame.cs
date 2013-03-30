@@ -84,7 +84,8 @@ public class UIEndGame : UIMenu
 			"time", 2.5f
 		));
 		
-		CameraPosition.Instance.Stop();
+		//CameraPosition.Instance.Stop();
+		Messenger.ReportCameraStopEvent();
 		CameraFov.Instance.AdjustTo(60f);
 		
 		Hide();

@@ -8,7 +8,10 @@ public class BuildingThemeFactory : MonoBehaviour {
 	public GameObject floorExplosion;
 	
 	public GameObject CreateBlock(BlockType type, BuildingUse use) {
-		return byUse[(int)use][(int)type];
+		GameObject obj = byUse[(int)use][(int)type];
+		if(obj != null)
+			obj = Instantiate(obj) as GameObject;
+		return obj;
 	}
 	
 	public GameObject CreatBlockExplosion() {

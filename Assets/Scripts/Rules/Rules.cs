@@ -115,7 +115,8 @@ public class Rules : MonoBehaviour
 		foreach( Player player in winners.Values )
 			players.Add(player.gameObject);
 		
-		CameraPosition.Instance.Follow(players, 5f);
+		//CameraPosition.Instance.Follow(players.ToArray() as GameObject[], 5f);
+		Messenger.ReportCameraFollowEvent(players.ToArray() as GameObject[], 5f);
 	}
 	
 	

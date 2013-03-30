@@ -51,9 +51,20 @@ public class Projectile : MonoBehaviour
 	public static Projectile Create(Launcher launcher, Vector3 velocity)
 	{
 		Projectile projectile = Projectile.Create(launcher);
-		projectile.rigidbody.velocity = velocity;
+		projectile.rigidbody.velocity = ProjectileVelOffset(velocity);
 		
 		return projectile;
+	}
+			
+	private static float ProjectileVelOffset(float val)
+	{
+		float offset = (float)Random.Range(0, (int)ProjectileInfo.ShotVariance) * 0.01f * val;
+		return Random.Range(0,2) == 0 ?  val - offset : val + offset;
+	}
+		
+	private static Vector3 ProjectileVelOffset(Vector3 val)
+	{
+			return new Vector3(ProjectileVelOffset(val.x), ProjectileVelOffset(val.y), 0f);
 	}
 	
 	

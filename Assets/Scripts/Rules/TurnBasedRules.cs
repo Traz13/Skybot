@@ -105,7 +105,8 @@ public class TurnBasedRules : Rules
 	
 	void focusOnPlayer(Player player)
 	{
-		CameraPosition.Instance.Follow(player.gameObject, 2f);
+		//CameraPosition.Instance.Follow(player.gameObject, 2f);
+		Messenger.ReportCameraFollowEvent(player.gameObject, 2f);
 		CameraFov.Instance.AdjustTo(60f);
 	}
 	
