@@ -34,3 +34,8 @@ public enum BlockType
 	BottomMiddle,
 	Count
 };
+
+public enum ProjectileInfo
+{
+	ShotVariance = 30,
+};

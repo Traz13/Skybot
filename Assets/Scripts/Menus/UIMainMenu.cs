@@ -71,7 +71,8 @@ public class UIMainMenu : UIMenu
 			return;
 		
 		// TODO: Make this more dynamic.
-		Application.LoadLevel("Sandbox (lars)");
+		Application.LoadLevel("MattScene1");
+		//Application.LoadLevel("Sandbox (lars)");
 	}
 	
 	
@@ -84,8 +85,8 @@ public class UIMainMenu : UIMenu
 		// Pan the camera back from the menu and down toward the playing area.
 		Vector3[] path = new Vector3[3];
 		path[0] = Camera.main.transform.position;
-		path[1] = new Vector3(path[0].x, path[0].y-10, Game.Instance.rules.cameraTransform.position.z);
-		path[2] = Game.Instance.rules.cameraTransform.position;
+		path[1] = new Vector3(path[0].x, path[0].y-10, Camera.main.transform.position.z);
+		path[2] = Camera.main.transform.position;
 		
 		iTween.MoveTo(Camera.main.gameObject, iTween.Hash(
 			"path", path,
@@ -96,7 +97,7 @@ public class UIMainMenu : UIMenu
 		));
 		
 		iTween.RotateTo(Camera.main.gameObject, iTween.Hash(
-			"rotation", Game.Instance.rules.cameraTransform.eulerAngles,
+			"rotation", Camera.main.transform.eulerAngles,
 			"easetype", iTween.EaseType.easeInOutSine,
 			"time", 2.5f
 		));

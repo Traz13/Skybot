@@ -75,7 +75,7 @@ public class Building : MonoBehaviour
 			GameObject floor = new GameObject("floor" + i.ToString());
 			floor.transform.parent = transform;
 			floor.transform.localScale = Vector3.one;
-			floor.transform.localPosition = Vector3.zero;
+			floor.transform.position = transform.position + new Vector3(((float)columns*blockScale.x)/2f, i*blockScale.y, 0);
 			
 			for( int j = 0; j < columns; j++ )
 			{
@@ -99,7 +99,8 @@ public class Building : MonoBehaviour
 		newBlock.name = "block" + column.ToString();
 		newBlock.transform.parent = floor.transform;
 		newBlock.transform.localScale = blockScale;
-		newBlock.transform.localPosition = new Vector3(column*blockScale.x, row*blockScale.y , 0f);
+		newBlock.transform.position = transform.position + new Vector3(column*blockScale.x, row*blockScale.y , 0f);
+		//newBlock.transform.localPosition = new Vector3(column*blockScale.x, row*blockScale.y , 0f);
 		if(isBottom)
 			Destroy (newBlock.rigidbody);
 	}

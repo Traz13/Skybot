@@ -1,10 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class CameraPosition : StaticInstance<CameraPosition>
+public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
 {
 	public readonly float defaultSpeed = 2f;
-	public readonly float defaultHeight = 5f;
+	public readonly float defaultHeight = 0f;
 	
 	GameObject[] focusObjects;
 	public float speed = 2f;
@@ -65,7 +65,7 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	/// Follow the specified components' game objects.
 	/// </summary>
 	
-	public void Follow(Component[] components, float focusSpeed, float focusHeight)
+	/*public void Follow(Component[] components, float focusSpeed, float focusHeight)
 	{
 		ArrayList gameObjects = new ArrayList();
 		foreach( Component com in components )
@@ -87,7 +87,7 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	public void Follow(Component[] components)
 	{
 		Follow(components, defaultSpeed, defaultHeight);
-	}
+	}*/
 	
 	
 	/// <summary>
@@ -118,7 +118,7 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	/// Focuses on the game objects.
 	/// </summary>
 	
-	public void Follow(ArrayList gameObjects, float focusSpeed, float focusHeight)
+	/*public void Follow(ArrayList gameObjects, float focusSpeed, float focusHeight)
 	{
 		Follow(gameObjects.ToArray(typeof(GameObject)) as GameObject[], focusSpeed, focusHeight);
 	}
@@ -133,7 +133,7 @@ public class CameraPosition : StaticInstance<CameraPosition>
 	public void Follow(ArrayList gameObjects)
 	{
 		Follow(gameObjects.ToArray(typeof(GameObject)) as GameObject[], defaultSpeed, defaultHeight);
-	}
+	}*/
 	
 	
 	/// <summary>
@@ -163,5 +163,68 @@ public class CameraPosition : StaticInstance<CameraPosition>
 		focusObjects = null;
 	}
 	
+	
+	void OnEnable() {
+		EnableEventSubscriptions();
+	}
+	
+	void OnDisable() {
+		DisableEventSubscriptions();
+	}
+	
+	virtual protected void EnableEventSubscriptions () {
+		Messenger.CameraEventOccurred += HandleCameraEventOccurred;
+	}
+	
+	virtual protected void DisableEventSubscriptions () {
+		Messenger.CameraEventOccurred -= HandleCameraEventOccurred;
+	}
+	
+	#region Camera Events
+	virtual protected void HandleCameraEventOccurred ( Messenger.CameraEvents camEvent, ArrayList args) {
+		switch (camEvent) {
+			
+		case Messenger.CameraEvents.PositionStop:
+			StartCoroutine(PositionStop());
+			break;
+		case Messenger.CameraEvents.PositionFollow:
+			StartCoroutine(PositionFollow(args));
+			break;
+		default:
+			break;
+		}
+	
+	}
+	
+	virtual protected IEnumerator PositionStop () {
+		yield return null;
+		Stop ();
+	}
+	
+	virtual protected IEnumerator PositionFollow(ArrayList args) {
+		yield return null;
+		bool isArr = !args[0].GetType().Equals(typeof(GameObject));
+		switch(args.Count) {
+		case 1:
+			if(isArr == true)
+				Follow (args[0] as GameObject[]);
+			else
+				Follow (args[0] as GameObject);
+			break;
+		case 2:
+			if(isArr == true)
+				Follow (args[0] as GameObject[], (float)args[1]);
+			else
+				Follow (args[0] as GameObject, (float)args[1]);
+			break;
+		case 3:
+			if(isArr == true)
+				Follow (args[0] as GameObject[], (float)args[1], (float)args[2]);
+			else
+				Follow (args[0] as GameObject, (float)args[1], (float)args[2]);
+			break;
+		};
+	}
+	#endregion
 }
 

@@ -181,7 +181,8 @@ public class Player : MonoBehaviour
 			if( launcher != null )
 			{
 				Projectile projectile = launcher.FireProjectile(aim*velocity);
-				CameraPosition.Instance.Follow(projectile.gameObject, 10f);
+				Messenger.ReportCameraFollowEvent(projectile.gameObject, 10f);
+				//CameraPosition.Instance.Follow(projectile.gameObject, 10f);
 			}
 			else
 			{

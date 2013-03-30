@@ -18,7 +18,8 @@ public class SlowMoZone : MonoBehaviour
 
 		SlowMo.Instance.on = true;
 		
-		CameraPosition.Instance.Follow(gameObject);
+		//CameraPosition.Instance.Follow(gameObject);
+		Messenger.ReportCameraFollowEvent(gameObject);
 		CameraFov.Instance.AdjustTo(35f, 500f*Time.deltaTime);
 	}
 	
@@ -37,7 +38,8 @@ public class SlowMoZone : MonoBehaviour
 		
 		SlowMo.Instance.timer = SlowMo.Instance.duration;
 		
-		CameraPosition.Instance.Follow(projectile.gameObject);
+		//CameraPosition.Instance.Follow(projectile.gameObject);
+		Messenger.ReportCameraFollowEvent(projectile.gameObject);
 		CameraFov.Instance.AdjustTo(60f, 500f*Time.deltaTime);
 	}
 }
