@@ -12,13 +12,21 @@ public class CameraFov : StaticInstance<CameraFov>
 	
 	void Update ()
 	{
-		if( !on || Camera.main == null )
+		if( !on )
 			return;
 		
-		float diff = fov - Camera.main.fov;
-		Camera.main.fov += diff * speed * Time.deltaTime;
+		Camera cam = Camera.main;
+		if( cam == null )
+		{
+			cam = Game.Instance.GetComponentInChildren<Camera>();
+			if( cam == null )
+				return; 	// No valid cameras.
+		}
 		
-		if( Mathf.Approximately(Camera.main.fov, fov) )
+		float diff = fov - cam.fov;
+		cam.fov += diff * speed * Time.deltaTime;
+		
+		if( Mathf.Approximately(cam.fov, fov) )
 			on = false;
 	}
 	

@@ -2,10 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Game : MonoBehaviour
+public class Game : StaticInstance<Game>
 {
-	public static Game Instance;
-	
 #region EVENTS
 	
 	public delegate void WillLoad(Game game);
@@ -26,8 +24,6 @@ public class Game : MonoBehaviour
 	// Building Creator - need a reference to the prefab
 	public BuildingFactory buildingFactory = null;
 	
-	public Transform CameraTransform;
-	
 #endregion
 #region UNITY_HOOKS
 	
@@ -37,19 +33,18 @@ public class Game : MonoBehaviour
 	/// </summary>
 	
 	void OnEnable()
-	{		
-		Instance = this;
-		
+	{
 		LoadGame();
 		
 		// If we have no menus, just automatically begin the game.
 		if( UI.Instance == null || UI.Instance.mainMenu == null )
-		{
-			// Load the basic UI
-			Application.LoadLevelAdditive("UI");
-			
 			rules.BeginGame();
-		}
+	}
+	
+	
+	void OnLevelWasLoaded()
+	{
+		LoadGame();
 	}
 	
 	
@@ -58,9 +53,6 @@ public class Game : MonoBehaviour
 		// Send event.
 		if( willLoad != null )
 			willLoad(this);
-		
-		foreach( Player player in players )
-			Destroy(player);
 		
 		// Gather all the players.
 		Player[] playersInScene = GameObject.FindObjectsOfType(typeof(Player)) as Player[];
@@ -86,6 +78,10 @@ public class Game : MonoBehaviour
 		}
 		
 		// Get our rules, or create defaults if we find none.
+<<<<<<< HEAD
+=======
+		//rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
+>>>>>>> 2fe5487078686b615c5f362976324930af30379f
 		if( rules == null )
 		{
 			rules = GameObject.FindObjectOfType(typeof(Rules)) as Rules;
@@ -119,13 +115,7 @@ public class Game : MonoBehaviour
 	
 	void Reset() {
 		if(buildingFactory == null)
-			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactories/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
-	}
-	
-	void Start()
-	{
-		if(buildingFactory == null)
-			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactories/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
+			buildingFactory = (Instantiate(Resources.Load("Prefabs/BuildingFactory")) as GameObject).GetComponent<BuildingFactory>();
 	}
 	
 	

@@ -28,9 +28,6 @@ public class Rules : MonoBehaviour
 	public float maxFireVelocity = 35f;
 	public float maxMoveVelocity = 15f;
 	
-	// Camera Transform
-	public Transform cameraTransform;
-	
 #endregion
 #region METHODS
 	
@@ -56,6 +53,10 @@ public class Rules : MonoBehaviour
 		// Set the first player in the array as the starting player.
 		currentPlayer = Game.Instance.players[0] as Player;
 		
+		// Reset scores.
+		foreach( Player player in Game.Instance.players )
+			player.score = 0;
+		
 		playing = true;
 	}
 	
@@ -66,7 +67,7 @@ public class Rules : MonoBehaviour
 	
 	protected virtual void EndGame() 		
 	{
-		if( SlowMo.Instance.on )
+		if( SlowMo.Instance != null && SlowMo.Instance.on )
 			SlowMo.Instance.didStop += slowMoDidStop;
 		else
 			StartCoroutine(endGame());
@@ -115,8 +116,8 @@ public class Rules : MonoBehaviour
 		foreach( Player player in winners.Values )
 			players.Add(player.gameObject);
 		
-		//CameraPosition.Instance.Follow(players.ToArray() as GameObject[], 5f);
-		Messenger.ReportCameraFollowEvent(players.ToArray() as GameObject[], 5f);
+		//CameraPosition.Instance.Follow(players.ToArray() as GameObject[], 0.1f);
+		Messenger.ReportCameraFollowEvent(players.ToArray() as GameObject[], 0.1f);
 	}
 	
 	

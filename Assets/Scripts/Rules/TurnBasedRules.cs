@@ -31,6 +31,24 @@ public class TurnBasedRules : Rules
 	
 	
 	/// <summary>
+	/// Awake this instance.
+	/// </summary>
+	
+	void Awake()
+	{
+		UI ui = UI.Instance;
+		if( ui != null )
+			ui.endTurnButton.didPress += endTurnPressed;
+		else
+		{
+			UI.didLoad += delegate(UI uib) {
+				uib.endTurnButton.didPress += endTurnPressed;
+			};
+		}
+	}
+	
+	
+	/// <summary>
 	/// Update this instance.
 	/// </summary>
 	
@@ -51,12 +69,22 @@ public class TurnBasedRules : Rules
 #region 	METHODS
 	
 	
+	void endTurnPressed(UIJglButton button)
+	{
+		if( button.isDown )
+			return;
+			
+		EndTurn();
+	}
+	
+	
 	/// <summary>
 	/// Begins the game.
 	/// </summary>
 	
 	public override void BeginGame()
 	{
+		currentRound = 0;
 		base.BeginGame();
 		
 		BeginTurn();
@@ -67,8 +95,12 @@ public class TurnBasedRules : Rules
 	{
 		base.EndGame();
 		
-		if( UI.Instance != null )
-			UI.Instance.phaseLabel.gameObject.SetActive(false);
+		UI ui = UI.Instance;
+		if( ui != null )
+		{
+			ui.phaseLabel.gameObject.SetActive(false);
+			ui.endTurnButton.gameObject.SetActive(false);
+		}
 	}
 	
 
@@ -95,18 +127,21 @@ public class TurnBasedRules : Rules
 		
 		focusOnPlayer(currentPlayer);
 		
-		if( UI.Instance != null )
+		UI ui = UI.Instance;
+		if( ui != null )
 		{
-			UI.Instance.phaseLabel.gameObject.SetActive(true);
-			UI.Instance.phaseLabel.text = "[FF0000]Attack[-]";
+			ui.phaseLabel.gameObject.SetActive(true);
+			ui.phaseLabel.text = "[FF0000]Attack[-]";
+			
+			ui.endTurnButton.gameObject.SetActive(true);
 		}
 	}
 	
 	
 	void focusOnPlayer(Player player)
 	{
-		//CameraPosition.Instance.Follow(player.gameObject, 2f);
-		Messenger.ReportCameraFollowEvent(player.gameObject, 2f);
+		//CameraPosition.Instance.Follow(player.gameObject, 0.025f);
+		Messenger.ReportCameraFollowEvent(player.gameObject, 0.025f);
 		CameraFov.Instance.AdjustTo(60f);
 	}
 	

@@ -1,14 +1,14 @@
 using UnityEngine;
 using System.Collections;
 
-public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
+public class CameraPosition : MonoBehaviour//StaticInstance<CameraPosition>
 {
-	public readonly float defaultSpeed = 2f;
-	public readonly float defaultHeight = 0f;
+	public float defaultSpeed = 1f;
+	public float defaultHeight = 0f;
 	
 	GameObject[] focusObjects;
-	public float speed = 2f;
-	public float height = 5f;
+	float speed = 1f;
+	float height = 5f;
 	
 	
 	/// <summary>
@@ -17,8 +17,16 @@ public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
 	
 	void Update()
 	{
-		if( focusObjects == null || Camera.main == null )
+		if( focusObjects == null || Game.Instance == null )
 			return;
+		
+		Camera cam = Camera.main;
+		if( cam == null )
+		{
+			cam = Game.Instance.GetComponentInChildren<Camera>();
+			if( cam == null )
+				return; 	// No valid cameras.
+		}
 		
 		// Strip out any dead objects, and automatically stop if none are alive.
 		ArrayList livingObjects = new ArrayList();
@@ -34,7 +42,7 @@ public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
 		{
 			Stop();
 			return;
-		}			
+		}
 		
 		// Find the points farthest up/right and down/left in screen space.
 		Bounds focusBoundsInWorld;
@@ -55,9 +63,9 @@ public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
 		}
 		
 		// Pan the camera so that it's in the center of the focus bounds.
-		Vector3 targetPosition = new Vector3(focusBoundsInWorld.center.x, focusBoundsInWorld.center.y+height, Camera.main.transform.position.z);
-		Vector3 positionDiff = targetPosition - Camera.main.transform.position;
-		Camera.main.transform.position += positionDiff * Time.deltaTime * speed;
+		Vector3 targetPosition = new Vector3(focusBoundsInWorld.center.x, focusBoundsInWorld.center.y+height, cam.transform.position.z);
+		Vector3 positionDiff = targetPosition - cam.transform.position;
+		cam.transform.position += positionDiff * Mathf.Clamp01(speed);
 	}
 	
 	
@@ -203,6 +211,9 @@ public class CameraPosition : MonoBehaviour //StaticInstance<CameraPosition>
 	
 	virtual protected IEnumerator PositionFollow(ArrayList args) {
 		yield return null;
+		if( args[0] == null )
+			yield break;
+		
 		bool isArr = !args[0].GetType().Equals(typeof(GameObject));
 		switch(args.Count) {
 		case 1:

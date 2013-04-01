@@ -22,5 +22,21 @@ public class Launcher : MonoBehaviour
 		
 		return projectile;
 	}
+	
+	
+	public Projectile FireProjectile(Vector3 force, Vector2 randomness)
+	{
+		Vector3 randMin = -randomness * 0.5f;
+		Vector3 randMax = -randMin;
+		Vector3 offset = new Vector3(Random.Range(randMin.x, randMax.x), Random.Range(randMin.y, randMax.y), 0f);
+		
+		return FireProjectile(force - offset);
+	}
+	
+	
+	public Projectile FireProjectile(Vector3 force, float randomness)
+	{
+		return FireProjectile(force, new Vector2(randomness, randomness));
+	}
 }
 

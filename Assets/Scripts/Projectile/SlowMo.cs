@@ -1,8 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class SlowMo : StaticInstance<SlowMo>
+public class SlowMo : MonoBehaviour
 {		
+	public static SlowMo Instance;
+	
 	public delegate void DidStart(SlowMo slowmo);
 	public event DidStart didStart;
 	
@@ -29,7 +31,13 @@ public class SlowMo : StaticInstance<SlowMo>
 		}
 	}
 	public float timer = 0f;
-	public float duration = 0.2f;
+	public float duration = 0.3f;
+	
+	
+	void Start()
+	{
+		Instance = this;
+	}
 	
 	
 	/// <summary>

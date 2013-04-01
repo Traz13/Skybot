@@ -108,11 +108,5 @@ public class UIEndGame : UIMenu
 		
 		Hide();
 	}
-	
-	
-	void OnLevelWasLoaded()
-	{
-		Game.Instance.rules.BeginGame();
-	}
 }
 

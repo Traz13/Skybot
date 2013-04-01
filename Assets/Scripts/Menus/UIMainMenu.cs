@@ -7,6 +7,7 @@ public class UIMainMenu : UIMenu
 	
 	public UILabel titleLabel;
 	public UIJglButton startButton;
+	public string levelName = "Sandbox (lars)";
 	
 	float titleColorTimer = 0f;
 	int titleColorIndex = 0;
@@ -54,6 +55,22 @@ public class UIMainMenu : UIMenu
 	void OnLevelWasLoaded()
 	{
 		moveToGameAndBegin();
+		
+		foreach( Camera cam in GameObject.FindObjectsOfType(typeof(Camera)))
+		{
+			if( cam.gameObject != Camera.main.gameObject )
+			{				
+				AudioListener audioListener = cam.GetComponent<AudioListener>();
+				if( audioListener )
+					Destroy(audioListener);
+				
+				// Disable any non-UI camera.
+				UICamera uiCam = cam.GetComponent<UICamera>();
+				if( uiCam == null )
+					cam.gameObject.SetActive(false);
+			}
+		}
+		
 	}
 	
 	
@@ -70,9 +87,7 @@ public class UIMainMenu : UIMenu
 		if( button.isDown )
 			return;
 		
-		// TODO: Make this more dynamic.
-		Application.LoadLevel("MattScene1");
-		//Application.LoadLevel("Sandbox (lars)");
+		Application.LoadLevel(levelName);
 	}
 	
 	
@@ -85,8 +100,8 @@ public class UIMainMenu : UIMenu
 		// Pan the camera back from the menu and down toward the playing area.
 		Vector3[] path = new Vector3[3];
 		path[0] = Camera.main.transform.position;
-		path[1] = new Vector3(path[0].x, path[0].y-10, Camera.main.transform.position.z);
-		path[2] = Camera.main.transform.position;
+		path[1] = new Vector3(path[0].x, path[0].y-10, Game.Instance.CameraTransform.position.z);
+		path[2] = Game.Instance.CameraTransform.position;
 		
 		iTween.MoveTo(Camera.main.gameObject, iTween.Hash(
 			"path", path,
@@ -97,7 +112,7 @@ public class UIMainMenu : UIMenu
 		));
 		
 		iTween.RotateTo(Camera.main.gameObject, iTween.Hash(
-			"rotation", Camera.main.transform.eulerAngles,
+			"rotation", Game.Instance.CameraTransform.eulerAngles,
 			"easetype", iTween.EaseType.easeInOutSine,
 			"time", 2.5f
 		));

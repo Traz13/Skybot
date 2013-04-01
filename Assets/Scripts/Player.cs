@@ -62,10 +62,7 @@ public class Player : MonoBehaviour
 	
 	void Awake()
 	{
-		// HACK: Make sure the game is initialized.
-		//Game game = Game.Instance;
-		//if( game == null )
-		//	throw new System.Exception("Game doesn't exist");
+		PlayerPicker.Init();
 		
 		// Line Renderer
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
@@ -92,12 +89,20 @@ public class Player : MonoBehaviour
 		// Show aim trajectory.
 		if( aiming )
 		{
+			if( Input.GetMouseButtonUp(0) )
+				MouseUp();
+			else
+				MouseDrag();
+			
 			Vector3[] points = Trajectory.PredictPositions(transform.position, aim, velocity, trajectorySamples, Time.fixedDeltaTime/Time.timeScale);
 			
+			lineRenderer.enabled = true;
 			lineRenderer.SetVertexCount(trajectorySamples);
 			for( int i = 0; i < points.Length; i++ )
 				lineRenderer.SetPosition(i, points[i]);
 		}
+		else
+			lineRenderer.enabled = false;
 		
 		// Movement
 		Vector3 thrust = Vector3.zero;
@@ -131,10 +136,12 @@ public class Player : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Collider mouse down event.
+	/// Custom mouse down event
+	/// NOTE: This is a work around for the buggy raycasting
+	/// 	  in the Main scene.
 	/// </summary>
 	
-	void OnMouseDown()
+	void MouseDown()
 	{
 		// Only allow the current player to aim.
 		if( shotsRemaining <= 0 || !Game.Instance.rules.AllowUserAction(gameObject) )
@@ -146,10 +153,10 @@ public class Player : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Collider mouse drag event.
+	/// Custom mouse drag event.
 	/// </summary>
 	
-	void OnMouseDrag()
+	void MouseDrag()
 	{
 		if( !aiming )
 			return;
@@ -165,10 +172,10 @@ public class Player : MonoBehaviour
 	
 	
 	/// <summary>
-	/// Collider mouse up event.
+	/// Custom mouse up event.
 	/// </summary>
 	
-	void OnMouseUp()
+	void MouseUp()
 	{
 		if( !aiming )
 			return;
@@ -181,8 +188,8 @@ public class Player : MonoBehaviour
 			if( launcher != null )
 			{
 				Projectile projectile = launcher.FireProjectile(aim*velocity);
-				Messenger.ReportCameraFollowEvent(projectile.gameObject, 10f);
-				//CameraPosition.Instance.Follow(projectile.gameObject, 10f);
+				Messenger.ReportCameraFollowEvent(projectile.gameObject);
+				//CameraPosition.Instance.Follow(projectile.gameObject);
 			}
 			else
 			{
