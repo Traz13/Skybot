@@ -148,31 +148,61 @@ public class CameraPosition : MonoBehaviour//StaticInstance<CameraPosition>
 	/// Focuses on the game object.
 	/// </summary>
 	
-	public void Follow(GameObject go, float focusSpeed, float focusHeight)
-	{
+	public void Follow(GameObject go, float focusSpeed, float focusHeight) {
 		Follow(new GameObject[]{ go }, focusSpeed, focusHeight);
 	}
 	
-	
-	public void Follow(GameObject go, float focusSpeed)
-	{
+	public void Follow(GameObject go, float focusSpeed) {
 		Follow(new GameObject[]{ go }, focusSpeed, defaultHeight);
 	}
 	
-	
-	public void Follow(GameObject go)
-	{
+	public void Follow(GameObject go) {
 		Follow(new GameObject[]{ go }, defaultSpeed, defaultHeight);
 	}
 	
-	
-	public void Stop()
-	{
+	public void Stop() {
 		focusObjects = null;
 	}
 	
+	private void FollowCallback(ArrayList args) {
+		if( args[0] == null )
+			return;
+		
+		bool isArr = !args[0].GetType().Equals(typeof(GameObject));
+		switch(args.Count) {
+		case 1:
+			if(isArr == true)
+				Follow (args[0] as GameObject[]);
+			else
+				Follow (args[0] as GameObject);
+			break;
+		case 2:
+			if(isArr == true)
+				Follow (args[0] as GameObject[], (float)args[1]);
+			else
+				Follow (args[0] as GameObject, (float)args[1]);
+			break;
+		case 3:
+			if(isArr == true)
+				Follow (args[0] as GameObject[], (float)args[1], (float)args[2]);
+			else
+				Follow (args[0] as GameObject, (float)args[1], (float)args[2]);
+			break;
+		};
+	}
 	
 	void OnEnable() {
+		Messenger.AddListener(CameraEvent.PositionStop, Stop);
+		Messenger.AddListener<ArrayList>(CameraEvent.PositionFollow, FollowCallback);
+	}
+	
+	void OnDisable() {
+		//Messenger.RemoveListener(CameraEvent.PositionStop, Stop);
+		//Messenger.RemoveListener<ArrayList>(CameraEvent.PositionFollow, FollowCallback);
+	}
+	
+	//	Traz TODO Messenger Upgrade
+	/*void OnEnable() {
 		EnableEventSubscriptions();
 	}
 	
@@ -237,5 +267,6 @@ public class CameraPosition : MonoBehaviour//StaticInstance<CameraPosition>
 		};
 	}
 	#endregion
+	*/
 }
 

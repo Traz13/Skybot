@@ -15,7 +15,7 @@ public class SlowMoZone : MonoBehaviour
 
 		SlowMo.Instance.on = true;
 		
-		CameraFov.Instance.AdjustTo(35f, 500f*Time.deltaTime);
+		GameMsg.FOVAdjust(35f, 500f*Time.deltaTime);
 	}
 	
 	void OnTriggerExit(Collider collider)
@@ -30,7 +30,7 @@ public class SlowMoZone : MonoBehaviour
 		
 		SlowMo.Instance.timer = SlowMo.Instance.duration;
 		
-		CameraFov.Instance.AdjustTo(60f, 500f*Time.deltaTime);
+		GameMsg.FOVAdjust(60f, 500f*Time.deltaTime);
 	}
 }
 

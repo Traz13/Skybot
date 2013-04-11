@@ -30,7 +30,7 @@ public class Player : MonoBehaviour
 	public Color color;
 	
 	// Launcher
-	public Launcher launcher;
+	//public Launcher launcher;
 	
 	// Jetpack
 	public float fuel = 0f;
@@ -185,17 +185,18 @@ public class Player : MonoBehaviour
 			return;
 		else
 		{
-			if( launcher != null )
-			{
-				Projectile projectile = launcher.FireProjectile(aim*velocity);
-				Messenger.ReportCameraFollowEvent(projectile.gameObject);
+			//if( launcher != null )
+			//{
+				Projectile projectile = FireProjectile(aim*velocity);
+				//Projectile projectile = launcher.FireProjectile(aim*velocity);
+				GameMsg.CameraFollow(projectile.gameObject);
 				//CameraPosition.Instance.Follow(projectile.gameObject);
-			}
-			else
-			{
-				Debug.LogError("No Launcher found in " + name);
-				return;
-			}
+			//}
+			//else
+			//{
+			//	Debug.LogError("No Launcher found in " + name);
+			//	return; 
+			//}
 		}
 		
 		aiming = false;
@@ -290,5 +291,43 @@ public class Player : MonoBehaviour
 	}
 	
 
+#endregion
+	
+#region Launcher
+	public delegate void DidFireProjectile(Player launcher, Projectile projectile);
+	public event DidFireProjectile didFireProjectile;
+	
+	public GameObject projectileOriginal;
+	
+	
+	/// <summary>
+	/// Fire a projectile with the specified force.
+	/// </summary>
+	
+	public Projectile FireProjectile(Vector3 force)
+	{		
+		Projectile projectile = Projectile.Create(this, force);
+		
+		if( didFireProjectile != null )
+			didFireProjectile(this, projectile);
+		
+		return projectile;
+	}
+	
+	
+	public Projectile FireProjectile(Vector3 force, Vector2 randomness)
+	{
+		Vector3 randMin = -randomness * 0.5f;
+		Vector3 randMax = -randMin;
+		Vector3 offset = new Vector3(Random.Range(randMin.x, randMax.x), Random.Range(randMin.y, randMax.y), 0f);
+		
+		return FireProjectile(force - offset);
+	}
+	
+	
+	public Projectile FireProjectile(Vector3 force, float randomness)
+	{
+		return FireProjectile(force, new Vector2(randomness, randomness));
+	}
 #endregion
 }

@@ -7,7 +7,7 @@ public class UIMainMenu : UIMenu
 	
 	public UILabel titleLabel;
 	public UIJglButton startButton;
-	public string levelName = "Sandbox (lars)";
+	public string levelName = "MattScene1";
 	
 	float titleColorTimer = 0f;
 	int titleColorIndex = 0;
@@ -124,7 +124,8 @@ public class UIMainMenu : UIMenu
 		// Hide the main menu when we're finished animating.
 		gameObject.SetActive(false);
 		
-		Game.Instance.rules.BeginGame();
+		//Game.Instance.rules.BeginGame();
+		GameMsg.BeginGame();
 	}
 	
 	

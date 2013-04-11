@@ -9,23 +9,7 @@ public abstract class StaticInstance<T> : MonoBehaviour where T : Component
     {
         get
         {
-            if ((object)_instance == null)
-            {
-               _instance = (T)FindObjectOfType(typeof(T));
-                if ((object)_instance == null)
-                {
-                    GameObject sys = GameObject.Find("SystemInternals");
-                    if (sys == null)
-					{
-                        sys = new GameObject("SystemInternals");
-						Object.DontDestroyOnLoad(sys);
-					}
-                    GameObject go = new GameObject(typeof(T).Name);
-                    go.transform.parent = sys.transform;
-                    Debug.Log("Creating singleton of type " + typeof(T).Name, go);
-                    _instance = go.AddComponent<T>();
-                }
-            }
+            Init();
             return _instance;
         }
     }

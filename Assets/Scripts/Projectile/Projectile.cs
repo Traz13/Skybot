@@ -5,8 +5,8 @@ public class Projectile : MonoBehaviour
 {
 	static int numCreated = 0;
 	
-	Launcher mLauncher;
-	public Launcher launcher {
+	Player mLauncher;
+	public Player launcher {
 		get { return mLauncher; }
 		set { mLauncher = value; }
 	}
@@ -21,7 +21,7 @@ public class Projectile : MonoBehaviour
 	/// Create a projectile, fired from the specified launcher.
 	/// </summary>
 	
-	public static Projectile Create(Launcher launcher)
+	public static Projectile Create(Player launcher)
 	{
 		GameObject newObject = GameObject.Instantiate(launcher.projectileOriginal) as GameObject;
 		newObject.gameObject.name = "projectile" + numCreated.ToString();
@@ -34,7 +34,8 @@ public class Projectile : MonoBehaviour
 			projectile.exploder = projectile.GetComponent<Exploder>();
 		
 		// Make sure not to collide with the launcher's owner, or any of its children.
-		foreach( Collider collider in launcher.transform.parent.GetComponentsInChildren<Collider>() )
+		//foreach( Collider collider in launcher.transform.parent.GetComponentsInChildren<Collider>() )
+		foreach( Collider collider in launcher.transform.GetComponentsInChildren<Collider>() )
 		{
 			if( collider.enabled && collider.gameObject.activeSelf )
 				Physics.IgnoreCollision(collider, projectile.collider);
@@ -48,7 +49,7 @@ public class Projectile : MonoBehaviour
 	/// Create a projectile, fired from the specified launcher with given velocity.
 	/// </summary>
 	
-	public static Projectile Create(Launcher launcher, Vector3 velocity)
+	public static Projectile Create(Player launcher, Vector3 velocity)
 	{
 		Projectile projectile = Projectile.Create(launcher);
 		projectile.rigidbody.velocity = velocity;

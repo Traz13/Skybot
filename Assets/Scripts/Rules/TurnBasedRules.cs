@@ -121,9 +121,11 @@ public class TurnBasedRules : Rules
 		
 		currentPlayer.RefillFuel();
 		
-		Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
-		if( launcher != null )
-			launcher.didFireProjectile += shotFired;
+		//Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
+		//if( launcher != null )
+		//	launcher.didFireProjectile += shotFired;
+		if(currentPlayer != null)
+			currentPlayer.didFireProjectile += shotFired;
 		
 		focusOnPlayer(currentPlayer);
 		
@@ -140,9 +142,8 @@ public class TurnBasedRules : Rules
 	
 	void focusOnPlayer(Player player)
 	{
-		//CameraPosition.Instance.Follow(player.gameObject, 0.025f);
-		Messenger.ReportCameraFollowEvent(player.gameObject, 0.025f);
-		CameraFov.Instance.AdjustTo(60f);
+		GameMsg.CameraFollow(player.gameObject, 0.025f);
+		GameMsg.FOVAdjust(60f);
 	}
 	
 	
@@ -169,9 +170,11 @@ public class TurnBasedRules : Rules
 			willEndTurn(this);
 		
 		// Stop listening for actions from the last player.
-		Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
-		if( launcher != null )
-			launcher.didFireProjectile -= shotFired;
+		//Launcher launcher = currentPlayer.GetComponentInChildren<Launcher>();
+		//if( launcher != null )
+		//	launcher.didFireProjectile -= shotFired;
+		if(currentPlayer != null)
+			currentPlayer.didFireProjectile -= shotFired;
 		
 		// Advance to the next player, as well as the round if we're on the last player.		
 		int nextPlayerIndex = currentPlayer.index + 1;
@@ -248,7 +251,7 @@ public class TurnBasedRules : Rules
 	/// Callback for newly fired projectile. 
 	/// </summary>
 	
-	void shotFired(Launcher launcher, Projectile projectile)
+	void shotFired(Player launcher, Projectile projectile)
 	{		
 		if( projectile.exploder != null )
 			projectile.exploder.didExplode += projectileDidExplode;

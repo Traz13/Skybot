@@ -36,6 +36,11 @@ public class Rules : MonoBehaviour
 	/// Initialize game data and begin the first turn.
 	/// </summary>
 	
+	void Start() {
+		Messenger.AddListener(GameEvent.Begin, BeginGame);
+		Messenger.AddListener(GameEvent.End, EndGame);
+	}
+	
 	public virtual void BeginGame()		
 	{		
 		Debug.Log("Begin Game!");
@@ -117,7 +122,7 @@ public class Rules : MonoBehaviour
 			players.Add(player.gameObject);
 		
 		//CameraPosition.Instance.Follow(players.ToArray() as GameObject[], 0.1f);
-		Messenger.ReportCameraFollowEvent(players.ToArray() as GameObject[], 0.1f);
+		GameMsg.CameraFollow(players.ToArray() as GameObject[], 0.1f);
 	}
 	
 	

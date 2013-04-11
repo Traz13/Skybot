@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class Game : MonoBehaviour
 {
 	public static Game Instance;
@@ -28,7 +29,16 @@ public class Game : MonoBehaviour
 	
 	public Transform CameraTransform;
 	
+	public Player CurrentPlayer{
+		get{ 
+			if(rules == null)
+				return null;
+			return rules.currentPlayer; 
+		}
+	}
+	
 #endregion
+
 #region UNITY_HOOKS
 	
 	
@@ -48,7 +58,8 @@ public class Game : MonoBehaviour
 			// Load the basic UI
 			Application.LoadLevelAdditive("UI");
 			
-			rules.BeginGame();
+			//rules.BeginGame();
+			GameMsg.BeginGame();
 		}
 	}
 	
@@ -131,4 +142,3 @@ public class Game : MonoBehaviour
 	
 #endregion
 }
-

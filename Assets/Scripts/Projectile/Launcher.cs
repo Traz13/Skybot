@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Launcher : MonoBehaviour
 {	
-	public delegate void DidFireProjectile(Launcher launcher, Projectile projectile);
+	/*public delegate void DidFireProjectile(Launcher launcher, Projectile projectile);
 	public event DidFireProjectile didFireProjectile;
 	
 	public GameObject projectileOriginal;
@@ -37,6 +37,6 @@ public class Launcher : MonoBehaviour
 	public Projectile FireProjectile(Vector3 force, float randomness)
 	{
 		return FireProjectile(force, new Vector2(randomness, randomness));
-	}
+	}*/
 }
 
